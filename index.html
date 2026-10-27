@@ -35,7 +35,7 @@
     .top-bar { width: 100%; display: flex; justify-content: space-between; align-items: center; background: var(--card); padding: 10px 16px; border-radius: 16px; border: 1px solid var(--card-border); }
     .balance-badge { display: flex; align-items: center; gap: 6px; font-weight: 700; color: #fbbf24; font-size: 14px; }
 
-    /* Навигация (Стена заменена на "Моя стена") */
+    /* Навигация */
     .nav-tabs { display: flex; width: 100%; background: var(--card); backdrop-filter: blur(20px); border-radius: 20px; padding: 4px; border: 1px solid var(--card-border); box-shadow: 0 10px 30px rgba(0,0,0,0.5); overflow-x: auto; }
     .tab { flex: 1; text-align: center; padding: 10px 2px; font-size: 11px; font-weight: 600; color: var(--text-sub); cursor: pointer; border-radius: 14px; transition: all 0.3s; white-space: nowrap; }
     .tab.active { background: var(--accent); color: white; box-shadow: 0 4px 20px rgba(255, 46, 126, 0.4); }
@@ -61,13 +61,16 @@
     .btn-secondary { background: rgba(255,255,255,0.08); color: #fff; border: 1px solid var(--card-border); margin-top: 6px; box-shadow: none; }
     .link-box { background: rgba(0,0,0,0.4); padding: 12px 16px; border-radius: 14px; font-size: 13px; color: #a5b4fc; word-break: break-all; border: 1px dashed rgba(255,255,255,0.1); text-align: center; }
 
-    /* Друзья */
-    .friend-item { display: flex; justify-content: space-between; align-items: center; background: rgba(255,255,255,0.03); padding: 12px 16px; border-radius: 18px; border: 1px solid var(--card-border); }
-    .friend-info { display: flex; align-items: center; gap: 12px; }
-    .friend-avatar { width: 40px; height: 40px; border-radius: 50%; background: linear-gradient(135deg, #3b82f6, #1d4ed8); display: flex; align-items: center; justify-content: center; font-size: 18px; font-weight: bold; }
-    .friend-name { font-size: 14px; font-weight: 600; }
-    .friend-status { font-size: 11px; color: var(--text-sub); margin-top: 2px; }
-    .friend-action-btn { background: var(--accent); color: white; border: none; padding: 8px 12px; border-radius: 12px; font-weight: 600; font-size: 12px; cursor: pointer; }
+    /* Друзья и кнопки действий */
+    .friend-item { display: flex; justify-content: space-between; align-items: center; background: rgba(255,255,255,0.03); padding: 12px 16px; border-radius: 18px; border: 1px solid var(--card-border); gap: 10px; }
+    .friend-info { display: flex; align-items: center; gap: 10px; flex: 1; min-width: 0; }
+    .friend-avatar { width: 38px; height: 38px; border-radius: 50%; background: linear-gradient(135deg, #3b82f6, #1d4ed8); display: flex; align-items: center; justify-content: center; font-size: 16px; font-weight: bold; flex-shrink: 0; }
+    .friend-name { font-size: 13px; font-weight: 600; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+    .friend-status { font-size: 11px; color: var(--text-sub); }
+    
+    .friend-actions { display: flex; gap: 6px; flex-shrink: 0; }
+    .friend-action-btn { background: rgba(255,255,255,0.1); color: white; border: none; padding: 7px 10px; border-radius: 10px; font-weight: 600; font-size: 11px; cursor: pointer; }
+    .friend-action-btn.primary { background: var(--accent); }
 
     /* Карточки вопросов */
     .qa-card { background: var(--card); border-radius: 24px; padding: 20px; width: 100%; border: 1px solid var(--card-border); display: flex; flex-direction: column; gap: 10px; }
@@ -78,7 +81,7 @@
 
     .reveal-inline-btn { background: rgba(251, 191, 36, 0.15); color: #fbbf24; border: 1px solid rgba(251, 191, 36, 0.3); padding: 8px 12px; border-radius: 12px; font-weight: 700; font-size: 12px; cursor: pointer; display: flex; align-items: center; justify-content: center; gap: 6px; margin-top: 6px; }
 
-    /* Универсальные модальные окна */
+    /* Модальные окна */
     .modal-overlay { position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.7); backdrop-filter: blur(10px); display: none; align-items: center; justify-content: center; z-index: 1000; padding: 20px; }
     .modal-content { background: #12151c; border: 1px solid rgba(255,255,255,0.1); border-radius: 24px; padding: 24px; width: 100%; max-width: 360px; display: flex; flex-direction: column; gap: 16px; text-align: center; box-shadow: 0 20px 50px rgba(0,0,0,0.6); }
     .modal-title { font-size: 18px; font-weight: 700; }
@@ -103,7 +106,7 @@
       </div>
     </div>
 
-    <!-- Навигация (Стена заменена на "Моя стена") -->
+    <!-- Навигация (динамическая надпись: Моя стена / Стена) -->
     <div class="nav-tabs" id="navTabs">
       <div class="tab active" onclick="switchTab('main')" id="tab-btn-main">Главная</div>
       <div class="tab" onclick="switchTab('inbox')" id="tab-btn-inbox">Сообщения 📥</div>
@@ -122,7 +125,7 @@
       <div id="inboxList" style="width: 100%; display: flex; flex-direction: column; gap: 12px;"></div>
     </div>
 
-    <!-- Вкладка 3: Моя стена -->
+    <!-- Вкладка 3: Стена -->
     <div class="view" id="view-wall">
       <div id="wallList" style="width: 100%; display: flex; flex-direction: column; gap: 12px;"></div>
     </div>
@@ -136,7 +139,7 @@
     </div>
   </div>
 
-  <!-- Модальное окно для раскрытия автора -->
+  <!-- Модальное окно раскрытия автора -->
   <div class="modal-overlay" id="revealModal">
     <div class="modal-content">
       <div class="modal-title">🕵️‍♂️ Узнать автора?</div>
@@ -149,7 +152,7 @@
     </div>
   </div>
 
-  <!-- Модальное окно предложения опубликовать сторис после ответа -->
+  <!-- Модальное окно сторис -->
   <div class="modal-overlay" id="storyModal">
     <div class="modal-content">
       <div class="modal-title">🔥 Успешно опубликовано!</div>
@@ -205,10 +208,12 @@
     let lastPublishedQ = "";
     let lastPublishedA = "";
 
+    // 🔥 Если гость на чужом профиле — меняем надпись в табе на просто "Стена"
     if (isVisiting) {
       document.getElementById('topBarTitle').innerText = `Стена юзера #${targetUserId}`;
       document.getElementById('tab-btn-inbox').style.display = 'none';
       document.getElementById('tab-btn-friends').style.display = 'none';
+      document.getElementById('tab-btn-wall').innerText = "Стена 🏛";
     }
 
     function updateCoins(amount) {
@@ -282,6 +287,7 @@
       if (tabName === 'friends') loadFriends();
     }
 
+    // 🔥 Рендер списка друзей с кнопками "Стена" и прямой кнопкой "Задать вопрос"
     function loadFriends() {
       const container = document.getElementById('friendsListContainer');
       container.innerHTML = "";
@@ -296,7 +302,10 @@
                 <div class="friend-status">${friend.active ? '🟢 В игре' : '⚪️ Не в игре'}</div>
               </div>
             </div>
-            <button class="friend-action-btn" onclick="visitFriendWall(${friend.id})">Стена 🏛</button>
+            <div class="friend-actions">
+              <button class="friend-action-btn" onclick="visitFriendWall(${friend.id})">Стена</button>
+              <button class="friend-action-btn primary" onclick="visitFriendWall(${friend.id})">💬 Задать</button>
+            </div>
           </div>
         `;
       });
@@ -340,7 +349,6 @@
       });
     }
 
-    // Публикация ответа и вызов модалки для сторис
     function publishAnswer(id, qText) {
       const ansInput = document.getElementById(`ans_${id}`);
       const aText = ansInput.value.trim();
@@ -353,13 +361,10 @@
       inboxData = inboxData.filter(i => i.id !== id);
       localStorage.setItem('inbox', JSON.stringify(inboxData));
 
-      // Сохраняем для сторис
       lastPublishedQ = qText;
       lastPublishedA = aText;
 
       tg.HapticFeedback.notificationOccurred('success');
-      
-      // Открываем всплывающее окно предложения сторис
       document.getElementById('storyModal').style.display = 'flex';
     }
 
@@ -397,12 +402,10 @@
       switchTab('wall');
     }
 
-    // 🔥 Публикация сторис с вопросом, ответом и ссылкой
     function shareToStoryAndEarn() {
       closeStoryModal();
       
       if (tg.isVersionAtLeast('7.8')) {
-        // Формируем текст истории, включая вопрос и ответ
         const storyText = `❓ Вопрос: "${lastPublishedQ}"\n💬 Ответ: ${lastPublishedA}\n\n👇 Задай мне анонимный вопрос!`;
         
         tg.shareToStory("https://telegra.ph/file/example.png", {
