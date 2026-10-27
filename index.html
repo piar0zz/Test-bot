@@ -125,7 +125,7 @@
       <div id="inboxList" style="width: 100%; display: flex; flex-direction: column; gap: 12px;"></div>
     </div>
 
-    <!-- Вкладка 3: Стена -->
+    <!-- Вкладка 3: Моя стена -->
     <div class="view" id="view-wall">
       <div id="wallList" style="width: 100%; display: flex; flex-direction: column; gap: 12px;"></div>
     </div>
@@ -168,6 +168,7 @@
     const tg = window.Telegram.WebApp;
     tg.expand();
 
+    const botUsername = "tedsafwgbot"; // 🔥 Имя твоего бота прописано здесь
     const myUserId = tg.initDataUnsafe?.user?.id || 12345;
     
     const urlParams = new URLSearchParams(window.location.search);
@@ -225,7 +226,6 @@
       const container = document.getElementById('mainCardContent');
       
       if (!isVisiting) {
-        const botUsername = "your_bot_name"; 
         const myLink = `https://t.me/${botUsername}/app?startapp=${myUserId}`;
         
         container.innerHTML = `
@@ -259,7 +259,6 @@
     }
 
     function inviteAndEarn() {
-      const botUsername = "your_bot_name";
       const myLink = `https://t.me/${botUsername}/app?startapp=${myUserId}`;
       const text = encodeURIComponent("Задай мне анонимный вопрос! Переходи по ссылке и получи +150 монет сразу! 🤫👇\n" + myLink);
       
@@ -286,7 +285,6 @@
       if (tabName === 'friends') loadFriends();
     }
 
-    // Рендер списка друзей с раздельными кнопками "Стена" и "Написать"
     function loadFriends() {
       const container = document.getElementById('friendsListContainer');
       container.innerHTML = "";
@@ -310,13 +308,11 @@
       });
     }
 
-    // Кнопка "Стена" — перекидывает на стену друга (с параметром wall=1 если нужно, или просто профиль)
     function visitFriendWall(friendId) {
       tg.HapticFeedback.notificationOccurred('success');
       window.location.href = `${window.location.pathname}?startapp=${friendId}`;
     }
 
-    // Кнопка "Написать" — перекидывает сразу на форму отправки сообщения другу
     function writeMessageToFriend(friendId) {
       tg.HapticFeedback.notificationOccurred('success');
       window.location.href = `${window.location.pathname}?startapp=${friendId}`;
@@ -417,7 +413,7 @@
         tg.shareToStory("https://telegra.ph/file/example.png", {
           text: storyText,
           widget_link: {
-            url: `https://t.me/your_bot_name/app?startapp=${myUserId}`,
+            url: `https://t.me/${botUsername}/app?startapp=${myUserId}`,
             name: "Задать анонимный вопрос 🤫"
           }
         });
