@@ -279,6 +279,7 @@ class Handler(BaseHTTPRequestHandler):
 
 if __name__ == "__main__":
     threading.Thread(target=bot_loop, daemon=True).start()
-    server = ThreadingHTTPServer(("0.0.0.0", 8080), Handler)
-    print("🚀 Бэкенд запущен на порту 8080 (без зависимостей)")
+    PORT = int(os.getenv("PORT", "8080"))
+    server = ThreadingHTTPServer(("0.0.0.0", PORT), Handler)
+    print(f"🚀 Бэкенд запущен на порту {PORT} (без зависимостей)")
     server.serve_forever()
