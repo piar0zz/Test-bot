@@ -3,7 +3,7 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no">
-  <title>Анонимные Вопросы & Квесты</title>
+  <title>Анонимные Вопросы & Друзья</title>
   <script src="https://telegram.org/js/telegram-web-app.js"></script>
   <style>
     :root {
@@ -31,13 +31,13 @@
 
     .container { width: 100%; max-width: 420px; display: flex; flex-direction: column; align-items: center; gap: 16px; }
 
-    /* Баланс монет в шапке */
+    /* Шапка баланса */
     .top-bar { width: 100%; display: flex; justify-content: space-between; align-items: center; background: var(--card); padding: 10px 16px; border-radius: 16px; border: 1px solid var(--card-border); }
     .balance-badge { display: flex; align-items: center; gap: 6px; font-weight: 700; color: #fbbf24; font-size: 14px; }
 
-    /* Навигация */
-    .nav-tabs { display: flex; width: 100%; background: var(--card); backdrop-filter: blur(20px); border-radius: 20px; padding: 4px; border: 1px solid var(--card-border); box-shadow: 0 10px 30px rgba(0,0,0,0.5); }
-    .tab { flex: 1; text-align: center; padding: 10px 4px; font-size: 11px; font-weight: 600; color: var(--text-sub); cursor: pointer; border-radius: 16px; transition: all 0.3s; }
+    /* Навигация (компактная для 6 вкладок) */
+    .nav-tabs { display: flex; width: 100%; background: var(--card); backdrop-filter: blur(20px); border-radius: 20px; padding: 4px; border: 1px solid var(--card-border); box-shadow: 0 10px 30px rgba(0,0,0,0.5); overflow-x: auto; }
+    .tab { flex: 1; text-align: center; padding: 10px 2px; font-size: 10px; font-weight: 600; color: var(--text-sub); cursor: pointer; border-radius: 14px; transition: all 0.3s; white-space: nowrap; }
     .tab.active { background: var(--accent); color: white; box-shadow: 0 4px 20px rgba(255, 46, 126, 0.4); }
 
     .view { display: none; width: 100%; flex-direction: column; gap: 16px; animation: fadeIn 0.3s ease; }
@@ -59,8 +59,16 @@
     .btn:active { transform: scale(0.97); }
 
     .btn-secondary { background: rgba(255,255,255,0.08); color: #fff; border: 1px solid var(--card-border); margin-top: 6px; box-shadow: none; }
-
     .link-box { background: rgba(0,0,0,0.4); padding: 12px 16px; border-radius: 14px; font-size: 13px; color: #a5b4fc; word-break: break-all; border: 1px dashed rgba(255,255,255,0.1); text-align: center; }
+
+    /* Элементы списка друзей */
+    .friend-item { display: flex; justify-content: space-between; align-items: center; background: rgba(255,255,255,0.03); padding: 12px 16px; border-radius: 18px; border: 1px solid var(--card-border); }
+    .friend-info { display: flex; align-items: center; gap: 12px; }
+    .friend-avatar { width: 40px; height: 40px; border-radius: 50%; background: linear-gradient(135deg, #3b82f6, #1d4ed8); display: flex; align-items: center; justify-content: center; font-size: 18px; font-weight: bold; }
+    .friend-name { font-size: 14px; font-weight: 600; }
+    .friend-status { font-size: 11px; color: var(--text-sub); margin-top: 2px; }
+    .friend-action-btn { background: rgba(255,255,255,0.1); color: white; border: none; padding: 8px 12px; border-radius: 12px; font-weight: 600; font-size: 12px; cursor: pointer; }
+    .friend-action-btn.active-visit { background: var(--accent); }
 
     /* Квесты и карточки */
     .quest-card { display: flex; justify-content: space-between; align-items: center; background: rgba(255,255,255,0.03); padding: 14px 16px; border-radius: 18px; border: 1px solid var(--card-border); }
@@ -81,28 +89,27 @@
 <body>
 
   <div class="container">
-    <!-- Шапка с балансом монет -->
+    <!-- Шапка баланса -->
     <div class="top-bar">
-      <span style="font-size: 13px; font-weight: 600; color: var(--text-sub);">Твой профиль 🥷</span>
+      <span style="font-size: 13px; font-weight: 600; color: var(--text-sub);" id="topBarTitle">Твой профиль 🥷</span>
       <div class="balance-badge">
         <span>✨</span> <span id="userCoins">150</span> монет
       </div>
     </div>
 
-    <!-- Навигация (5 вкладок) -->
-    <div class="nav-tabs">
+    <!-- Навигация (6 вкладок) -->
+    <div class="nav-tabs" id="navTabs">
       <div class="tab active" onclick="switchTab('main')" id="tab-btn-main">Главная</div>
       <div class="tab" onclick="switchTab('inbox')" id="tab-btn-inbox">Инбокс 📥</div>
       <div class="tab" onclick="switchTab('wall')" id="tab-btn-wall">Стена 🏛</div>
+      <div class="tab" onclick="switchTab('friends')" id="tab-btn-friends">Друзья 👥</div>
       <div class="tab" onclick="switchTab('quests')" id="tab-btn-quests">Квесты 🎯</div>
       <div class="tab" onclick="switchTab('store')" id="tab-btn-store">Магазин ⭐️</div>
     </div>
 
-    <!-- Вкладка 1: Главная (Кабинет ИЛИ Отправка другу) -->
+    <!-- Вкладка 1: Главная -->
     <div class="view active" id="view-main">
-      <div class="card" id="mainCardContent">
-        <!-- Динамически заполняется скриптом -->
-      </div>
+      <div class="card" id="mainCardContent"></div>
       <div id="statusBox" class="status"></div>
     </div>
 
@@ -111,39 +118,40 @@
       <div id="inboxList" style="width: 100%; display: flex; flex-direction: column; gap: 12px;"></div>
     </div>
 
-    <!-- Вкладка 3: Стена ответов -->
+    <!-- Вкладка 3: Стена -->
     <div class="view" id="view-wall">
       <div id="wallList" style="width: 100%; display: flex; flex-direction: column; gap: 12px;"></div>
     </div>
 
-    <!-- Вкладка 4: Квесты и Задания (Геймификация и награды) -->
+    <!-- Вкладка 4: Список друзей из Telegram -->
+    <div class="view" id="view-friends">
+      <div class="title" style="text-align: left; margin-bottom: 2px;">Контакты и друзья 👥</div>
+      <div class="subtitle" style="text-align: left; margin-bottom: 6px;">Переходи на стены друзей или приглашай новых</div>
+      
+      <div style="width: 100%; display: flex; flex-direction: column; gap: 10px;" id="friendsListContainer">
+        <!-- Динамический список контактов -->
+      </div>
+      
+      <button class="btn" style="margin-top: 10px;" onclick="inviteMoreFriends()">➕ Пригласить друзей</button>
+    </div>
+
+    <!-- Вкладка 5: Квесты -->
     <div class="view" id="view-quests">
       <div class="title" style="text-align: left; margin-bottom: 2px;">Ежедневные квесты 🎯</div>
       <div class="subtitle" style="text-align: left; margin-bottom: 6px;">Выполняй задания и забирай монеты!</div>
-      
-      <div id="questsList" style="width: 100%; display: flex; flex-direction: column; gap: 10px;">
-        <!-- Динамически рендерится -->
-      </div>
+      <div id="questsList" style="width: 100%; display: flex; flex-direction: column; gap: 10px;"></div>
     </div>
 
-    <!-- Вкладка 5: Магазин -->
+    <!-- Вкладка 6: Магазин -->
     <div class="view" id="view-store">
       <div class="title" style="text-align: left; margin-bottom: 4px;">Магазин наград ⭐️</div>
       <div class="subtitle" style="text-align: left; margin-bottom: 10px;">Трать монеты или звезды</div>
-      
       <div class="quest-card">
         <div class="quest-info">
           <h4>🕵️‍♂️ Раскрыть автора</h4>
           <p>Узнай, кто прислал анонимку</p>
         </div>
         <button class="claim-btn" style="background:#3b82f6;" onclick="buyItem(50)">50 монет</button>
-      </div>
-      <div class="quest-card" style="margin-top: 8px;">
-        <div class="quest-info">
-          <h4>👑 Золотой статус</h4>
-          <p>Корона и премиум рамка</p>
-        </div>
-        <button class="claim-btn" style="background:#3b82f6;" onclick="buyItem(150)">150 монет</button>
       </div>
     </div>
   </div>
@@ -156,7 +164,8 @@
     const urlParams = new URLSearchParams(window.location.search);
     let targetUserId = tg.initDataUnsafe?.start_param || urlParams.get('tgWebAppStartParam');
 
-    // Данные в localStorage для динамики
+    const isVisiting = targetUserId && targetUserId != myUserId;
+
     let userCoins = parseInt(localStorage.getItem('coins')) || 150;
     document.getElementById('userCoins').innerText = userCoins;
 
@@ -175,17 +184,30 @@
       { id: 3, title: "Поделись ссылкой в сторис", reward: 40, progress: 0, target: 1, done: false }
     ];
 
+    // Имитация списка контактов Telegram (в реальном приложении подтягиваются ID друзей)
+    let telegramFriends = [
+      { id: 888111, name: "Алексей Смирнов", avatar: "👨‍💻", active: true },
+      { id: 888222, name: "Катя Васильева", avatar: "👩‍🎨", active: true },
+      { id: 888333, name: "Максим Ковалев", avatar: "🚀", active: false }
+    ];
+
+    if (isVisiting) {
+      document.getElementById('topBarTitle').innerText = `Профиль юзера #${targetUserId}`;
+      document.getElementById('tab-btn-inbox').style.display = 'none';
+      document.getElementById('tab-btn-quests').style.display = 'none';
+      document.getElementById('tab-btn-friends').style.display = 'none';
+    }
+
     function updateCoins(amount) {
       userCoins += amount;
       localStorage.setItem('coins', userCoins);
       document.getElementById('userCoins').innerText = userCoins;
     }
 
-    // Рендер главного экрана (Личный кабинет ИЛИ отправка другу)
     function renderMainScreen() {
       const container = document.getElementById('mainCardContent');
       
-      if (!targetUserId || targetUserId == myUserId) {
+      if (!isVisiting) {
         const myLink = `https://t.me/your_bot_name/app?startapp=${myUserId}`;
         container.innerHTML = `
           <div class="profile-header">
@@ -200,12 +222,13 @@
       } else {
         container.innerHTML = `
           <div class="profile-header">
-            <div class="avatar">🥷</div>
-            <div class="title">Задай анонимный вопрос</div>
-            <div class="subtitle">Получатель не узнает, кто ты 🔒</div>
+            <div class="avatar">🎯</div>
+            <div class="title">Стена пользователя #${targetUserId}</div>
+            <div class="subtitle">Задай анонимный вопрос, он не узнает автора 🔒</div>
           </div>
           <textarea id="msgInput" placeholder="Напиши всё, что думаешь..." maxlength="300"></textarea>
-          <button class="btn" id="sendBtn" onclick="sendQuestion()">Отправить анонимно 🔥</button>
+          <button class="btn" id="sendBtn" onclick="sendQuestionToUser()">Отправить анонимно 🔥</button>
+          <button class="btn btn-secondary" onclick="goToMyProfile()">🏠 Перейти к моему профилю</button>
         `;
       }
     }
@@ -216,12 +239,19 @@
       alert("Ссылка скопирована!");
     }
 
-    // 🔥 Прямая отправка друзьям находясь ВНУТРИ миниапа (Telegram WebApp API)
     function shareToFriendsDirectly() {
       const myLink = `https://t.me/your_bot_name/app?startapp=${myUserId}`;
       const text = encodeURIComponent("Задай мне анонимный вопрос в Telegram! 🤫👇\n" + myLink);
-      // Открывает нативный диалог выбора чата/друга в Telegram
       window.open(`https://t.me/share/url?url=${encodeURIComponent(myLink)}&text=${text}`);
+    }
+
+    function inviteMoreFriends() {
+      shareToFriendsDirectly();
+      updateQuestProgress(3);
+    }
+
+    function goToMyProfile() {
+      window.location.href = window.location.pathname;
     }
 
     function switchTab(tabName) {
@@ -233,19 +263,45 @@
 
       if (tabName === 'inbox') loadInbox();
       if (tabName === 'wall') loadWall();
+      if (tabName === 'friends') loadFriends();
       if (tabName === 'quests') loadQuests();
     }
 
-    async function sendQuestion() {
+    // Рендер списка друзей
+    function loadFriends() {
+      const container = document.getElementById('friendsListContainer');
+      container.innerHTML = "";
+      
+      telegramFriends.forEach(friend => {
+        container.innerHTML += `
+          <div class="friend-item">
+            <div class="friend-info">
+              <div class="friend-avatar">${friend.avatar}</div>
+              <div>
+                <div class="friend-name">${friend.name}</div>
+                <div class="friend-status">${friend.active ? '🟢 В игре' : '⚪️ Пригласить'}</div>
+              </div>
+            </div>
+            <button class="friend-action-btn active-visit" onclick="visitFriendWall(${friend.id})">Стена 🏛</button>
+          </div>
+        `;
+      });
+    }
+
+    function visitFriendWall(friendId) {
+      tg.HapticFeedback.notificationOccurred('success');
+      // Перенаправляем на стену друга через startapp параметр
+      window.location.href = `${window.location.pathname}?startapp=${friendId}`;
+    }
+
+    async function sendQuestionToUser() {
       const input = document.getElementById('msgInput');
       const text = input.value.trim();
       if (!text) { tg.HapticFeedback.notificationOccurred('error'); return; }
 
       tg.HapticFeedback.notificationOccurred('success');
-      alert("✅ Вопрос успешно отправлен анонимно!");
+      alert(`✅ Вопрос успешно отправлен пользователю #${targetUserId}!`);
       input.value = "";
-      
-      // Прогресс квеста (задание: задать вопросы)
       updateQuestProgress(1);
     }
 
@@ -278,8 +334,8 @@
       inboxData = inboxData.filter(item => item.id !== id);
       localStorage.setItem('inbox', JSON.stringify(inboxData));
 
-      updateCoins(10); // Бонус монет за ответ
-      updateQuestProgress(2); // Прогресс квеста на ответы
+      updateCoins(10);
+      updateQuestProgress(2);
 
       tg.HapticFeedback.notificationOccurred('success');
       alert("🎉 Ответ опубликован! +10 монет ✨");
@@ -299,14 +355,11 @@
             <div class="q-badge">Вопрос</div>
             <div class="q-text">«${item.q}»</div>
             <div class="a-text">💬 ${item.a}</div>
-            <button class="btn" style="padding: 10px; font-size: 13px; margin-top: 6px; background: rgba(255,255,255,0.1);" onclick="shareToStory()">
-              🚀 Поделиться в истории Telegram
-            </button>
+            ${!isVisiting ? `<button class="btn" style="padding: 10px; font-size: 13px; margin-top: 6px; background: rgba(255,255,255,0.1);" onclick="shareToStory()">🚀 Поделиться в истории</button>` : ''}
           </div>`;
       });
     }
 
-    // Загрузка квестов
     function loadQuests() {
       const list = document.getElementById('questsList');
       list.innerHTML = "";
@@ -365,7 +418,7 @@
           widget_link: { url: `https://t.me/bot/app`, name: "Задать вопрос 🤫" }
         });
       } else {
-        updateQuestProgress(3); // Засчитываем квест сторис
+        updateQuestProgress(3);
         alert("Карточка готова к публикации в истории! Квест засчитан.");
       }
     }
