@@ -35,7 +35,7 @@
     .top-bar { width: 100%; display: flex; justify-content: space-between; align-items: center; background: var(--card); padding: 10px 16px; border-radius: 16px; border: 1px solid var(--card-border); }
     .balance-badge { display: flex; align-items: center; gap: 6px; font-weight: 700; color: #fbbf24; font-size: 14px; }
 
-    /* Навигация */
+    /* Навигация (Стена заменена на "Моя стена") */
     .nav-tabs { display: flex; width: 100%; background: var(--card); backdrop-filter: blur(20px); border-radius: 20px; padding: 4px; border: 1px solid var(--card-border); box-shadow: 0 10px 30px rgba(0,0,0,0.5); overflow-x: auto; }
     .tab { flex: 1; text-align: center; padding: 10px 2px; font-size: 11px; font-weight: 600; color: var(--text-sub); cursor: pointer; border-radius: 14px; transition: all 0.3s; white-space: nowrap; }
     .tab.active { background: var(--accent); color: white; box-shadow: 0 4px 20px rgba(255, 46, 126, 0.4); }
@@ -78,11 +78,11 @@
 
     .reveal-inline-btn { background: rgba(251, 191, 36, 0.15); color: #fbbf24; border: 1px solid rgba(251, 191, 36, 0.3); padding: 8px 12px; border-radius: 12px; font-weight: 700; font-size: 12px; cursor: pointer; display: flex; align-items: center; justify-content: center; gap: 6px; margin-top: 6px; }
 
-    /* Модальное окно */
+    /* Универсальные модальные окна */
     .modal-overlay { position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.7); backdrop-filter: blur(10px); display: none; align-items: center; justify-content: center; z-index: 1000; padding: 20px; }
     .modal-content { background: #12151c; border: 1px solid rgba(255,255,255,0.1); border-radius: 24px; padding: 24px; width: 100%; max-width: 360px; display: flex; flex-direction: column; gap: 16px; text-align: center; box-shadow: 0 20px 50px rgba(0,0,0,0.6); }
     .modal-title { font-size: 18px; font-weight: 700; }
-    .modal-sub { font-size: 13px; color: var(--text-sub); }
+    .modal-sub { font-size: 13px; color: var(--text-sub); line-height: 1.4; }
     
     .modal-buy-options { display: flex; gap: 10px; width: 100%; margin-top: 6px; }
     .modal-btn-coin { flex: 1; background: #fbbf24; color: #000; border: none; padding: 14px; border-radius: 14px; font-weight: 800; font-size: 13px; cursor: pointer; }
@@ -103,11 +103,11 @@
       </div>
     </div>
 
-    <!-- Навигация -->
+    <!-- Навигация (Стена заменена на "Моя стена") -->
     <div class="nav-tabs" id="navTabs">
       <div class="tab active" onclick="switchTab('main')" id="tab-btn-main">Главная</div>
       <div class="tab" onclick="switchTab('inbox')" id="tab-btn-inbox">Сообщения 📥</div>
-      <div class="tab" onclick="switchTab('wall')" id="tab-btn-wall">Стена 🏛</div>
+      <div class="tab" onclick="switchTab('wall')" id="tab-btn-wall">Моя стена 🏛</div>
       <div class="tab" onclick="switchTab('friends')" id="tab-btn-friends">Друзья 👥</div>
     </div>
 
@@ -122,7 +122,7 @@
       <div id="inboxList" style="width: 100%; display: flex; flex-direction: column; gap: 12px;"></div>
     </div>
 
-    <!-- Вкладка 3: Стена -->
+    <!-- Вкладка 3: Моя стена -->
     <div class="view" id="view-wall">
       <div id="wallList" style="width: 100%; display: flex; flex-direction: column; gap: 12px;"></div>
     </div>
@@ -136,7 +136,7 @@
     </div>
   </div>
 
-  <!-- Модальное окно оплаты -->
+  <!-- Модальное окно для раскрытия автора -->
   <div class="modal-overlay" id="revealModal">
     <div class="modal-content">
       <div class="modal-title">🕵️‍♂️ Узнать автора?</div>
@@ -146,6 +146,18 @@
         <button class="modal-btn-rub" onclick="payWithRubles()">50 ₽</button>
       </div>
       <button class="modal-close" onclick="closeModal()">Отмена</button>
+    </div>
+  </div>
+
+  <!-- Модальное окно предложения опубликовать сторис после ответа -->
+  <div class="modal-overlay" id="storyModal">
+    <div class="modal-content">
+      <div class="modal-title">🔥 Успешно опубликовано!</div>
+      <div class="modal-sub">Хочешь поделиться этим ответом в истории Telegram и получить **+100 монет**? В сторис автоматически добавится вопрос, твой ответ и ссылка для новых анонимок!</div>
+      <div style="display: flex; flex-direction: column; gap: 8px; width: 100%;">
+        <button class="btn" onclick="shareToStoryAndEarn()">🚀 Опубликовать в истории (+100 🪙)</button>
+        <button class="modal-close" onclick="closeStoryModal()">Позже</button>
+      </div>
     </div>
   </div>
 
@@ -190,6 +202,8 @@
 
     let currentRevealId = null;
     let currentRevealType = null;
+    let lastPublishedQ = "";
+    let lastPublishedA = "";
 
     if (isVisiting) {
       document.getElementById('topBarTitle').innerText = `Стена юзера #${targetUserId}`;
@@ -321,11 +335,12 @@
             <div class="q-text" style="font-size: 15px; color: #fff;">«${item.text}»</div>
             ${authorHtml}
             <textarea placeholder="Напиши ответ..." id="ans_${item.id}" style="height:80px; margin-top:6px;"></textarea>
-            <button class="btn" onclick="publishAnswer(${item.id}, '${item.text}')">Опубликовать на Стене 🔥</button>
+            <button class="btn" onclick="publishAnswer(${item.id}, '${item.text}')">Опубликовать на стене 🔥</button>
           </div>`;
       });
     }
 
+    // Публикация ответа и вызов модалки для сторис
     function publishAnswer(id, qText) {
       const ansInput = document.getElementById(`ans_${id}`);
       const aText = ansInput.value.trim();
@@ -338,9 +353,14 @@
       inboxData = inboxData.filter(i => i.id !== id);
       localStorage.setItem('inbox', JSON.stringify(inboxData));
 
+      // Сохраняем для сторис
+      lastPublishedQ = qText;
+      lastPublishedA = aText;
+
       tg.HapticFeedback.notificationOccurred('success');
-      alert("🎉 Ответ опубликован на стене!");
-      switchTab('wall');
+      
+      // Открываем всплывающее окно предложения сторис
+      document.getElementById('storyModal').style.display = 'flex';
     }
 
     function loadWall() {
@@ -361,26 +381,43 @@
             <div class="q-text">«${item.q}»</div>
             <div class="a-text">💬 ${item.a}</div>
             ${authorHtml}
-            ${!isVisiting ? `<button class="btn" style="padding: 10px; font-size: 13px; margin-top: 6px; background: rgba(255,255,255,0.1);" onclick="shareToStoryAndEarn()">🚀 Поделиться в истории (+100 монет)</button>` : ''}
+            ${!isVisiting ? `<button class="btn" style="padding: 10px; font-size: 13px; margin-top: 6px; background: rgba(255,255,255,0.1);" onclick="prepareStoryFromWall('${item.q}', '${item.a}')">🚀 Поделиться в истории (+100 монет)</button>` : ''}
           </div>`;
       });
     }
 
-    // 🔥 Интеграция с Telegram Stories (надпись и виджет-ссылка)
+    function prepareStoryFromWall(q, a) {
+      lastPublishedQ = q;
+      lastPublishedA = a;
+      shareToStoryAndEarn();
+    }
+
+    function closeStoryModal() {
+      document.getElementById('storyModal').style.display = 'none';
+      switchTab('wall');
+    }
+
+    // 🔥 Публикация сторис с вопросом, ответом и ссылкой
     function shareToStoryAndEarn() {
+      closeStoryModal();
+      
       if (tg.isVersionAtLeast('7.8')) {
+        // Формируем текст истории, включая вопрос и ответ
+        const storyText = `❓ Вопрос: "${lastPublishedQ}"\n💬 Ответ: ${lastPublishedA}\n\n👇 Задай мне анонимный вопрос!`;
+        
         tg.shareToStory("https://telegra.ph/file/example.png", {
-          text: "Задай мне анонимный вопрос! 🤫👇",
+          text: storyText,
           widget_link: {
             url: `https://t.me/your_bot_name/app?startapp=${myUserId}`,
-            name: "Задать вопрос 💬"
+            name: "Задать анонимный вопрос 🤫"
           }
         });
       }
       
       updateCoins(100);
       tg.HapticFeedback.notificationOccurred('success');
-      alert("🔥 Сторис опубликована! Получено +100 монет ✨");
+      alert("🔥 Сторис подготовлена! Получено +100 монет ✨");
+      switchTab('wall');
     }
 
     function openModal(id, type) {
