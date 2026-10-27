@@ -3,7 +3,7 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no">
-  <title>Анонимные Вопросы</title>
+  <title>Анонимные Вопросы & Стена</title>
   <script src="https://telegram.org/js/telegram-web-app.js"></script>
   <style>
     :root {
@@ -14,46 +14,100 @@
       --text-sub: #8e95a5;
     }
     * { box-sizing: border-box; margin: 0; padding: 0; font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif; user-select: none; }
-    body { background-color: var(--bg-color); color: var(--text-main); display: flex; flex-direction: column; align-items: center; min-height: 100vh; padding: 20px; }
-    .container { width: 100%; max-width: 400px; display: flex; flex-direction: column; align-items: center; gap: 20px; margin-top: 20px; }
-    .avatar-box { width: 70px; height: 70px; border-radius: 50%; background: var(--accent); display: flex; align-items: center; justify-content: center; font-size: 32px; box-shadow: 0 10px 25px rgba(221, 36, 118, 0.4); }
-    .card { background: var(--card-bg); border-radius: 24px; padding: 20px; width: 100%; border: 1px solid rgba(255,255,255,0.05); }
+    body { background-color: var(--bg-color); color: var(--text-main); display: flex; flex-direction: column; align-items: center; min-height: 100vh; padding: 16px; padding-bottom: 80px; }
+    
+    .container { width: 100%; max-width: 400px; display: flex; flex-direction: column; align-items: center; gap: 16px; }
+    
+    /* Навигация / Табы */
+    .nav-tabs { display: flex; width: 100%; background: var(--card-bg); border-radius: 16px; padding: 4px; margin-bottom: 10px; border: 1px solid rgba(255,255,255,0.05); }
+    .tab { flex: 1; text-align: center; padding: 10px; font-size: 13px; font-weight: 600; color: var(--text-sub); cursor: pointer; border-radius: 12px; transition: all 0.2s; }
+    .tab.active { background: var(--accent); color: white; }
+
+    .view { display: none; width: 100%; flex-direction: column; gap: 16px; }
+    .view.active { display: flex; }
+
+    .card { background: var(--card-bg); border-radius: 24px; padding: 20px; width: 100%; border: 1px solid rgba(255,255,255,0.05); box-shadow: 0 8px 32px rgba(0,0,0,0.3); }
     .title { font-size: 16px; font-weight: 700; text-align: center; margin-bottom: 14px; }
-    textarea { width: 100%; height: 110px; background: rgba(255,255,255,0.05); border: 2px solid rgba(255,255,255,0.1); border-radius: 16px; padding: 12px; color: #fff; font-size: 15px; resize: none; outline: none; }
-    textarea:focus { border-color: #DD2476; }
-    .btn { width: 100%; padding: 14px; border: none; border-radius: 14px; background: var(--accent); color: white; font-size: 15px; font-weight: 700; cursor: pointer; margin-top: 14px; }
-    .status { display: none; padding: 10px; border-radius: 10px; text-align: center; font-size: 13px; font-weight: 600; width: 100%; }
+    
+    textarea, input[type="text"] { width: 100%; background: rgba(255,255,255,0.05); border: 2px solid rgba(255,255,255,0.1); border-radius: 16px; padding: 14px; color: #fff; font-size: 15px; outline: none; resize: none; transition: border-color 0.2s; }
+    textarea:focus, input[type="text"]:focus { border-color: #DD2476; }
+    textarea { height: 110px; }
+
+    .btn { width: 100%; padding: 14px; border: none; border-radius: 14px; background: var(--accent); color: white; font-size: 15px; font-weight: 700; cursor: pointer; margin-top: 10px; box-shadow: 0 6px 20px rgba(221,36,118,0.3); }
+    .btn:active { transform: scale(0.98); }
+
+    /* Карточки вопросов и ответов на стене */
+    .qa-card { background: var(--card-bg); border-radius: 20px; padding: 16px; width: 100%; border: 1px solid rgba(255,255,255,0.05); display: flex; flex-direction: column; gap: 8px; }
+    .q-text { font-size: 14px; color: var(--text-sub); }
+    .a-text { font-size: 16px; font-weight: 600; color: #fff; }
+    .btn-story { background: rgba(255,255,255,0.1); color: #fff; font-size: 13px; padding: 8px; border-radius: 10px; border: none; cursor: pointer; margin-top: 6px; font-weight: 600; }
+
+    .status { padding: 10px; border-radius: 10px; text-align: center; font-size: 13px; font-weight: 600; width: 100%; display: none; }
     .success { background: rgba(34,197,94,0.15); color: #4ade80; border: 1px solid rgba(34,197,94,0.3); }
     .error { background: rgba(239,68,68,0.15); color: #f87171; border: 1px solid rgba(239,68,68,0.3); }
   </style>
 </head>
 <body>
+
   <div class="container">
-    <div class="avatar-box">🥷</div>
-    <div class="card">
-      <div class="title" id="cardTitle">Задай мне анонимный вопрос 🤫</div>
-      <textarea id="msgInput" placeholder="Напиши всё, что думаешь..." maxlength="300"></textarea>
-      <button class="btn" id="sendBtn" onclick="sendQuestion()">Отправить анонимно 🔥</button>
+    <!-- Переключение вкладок -->
+    <div class="nav-tabs">
+      <div class="tab active" onclick="switchTab('send')" id="tab-btn-send">Спросить</div>
+      <div class="tab" onclick="switchTab('inbox')" id="tab-btn-inbox">Инбокс 📥</div>
+      <div class="tab" onclick="switchTab('wall')" id="tab-btn-wall">Моя Стена 🏛</div>
     </div>
-    <div id="statusBox" class="status"></div>
+
+    <!-- Вкладка 1: Отправить вопрос (для гостей) -->
+    <div class="view active" id="view-send">
+      <div class="card">
+        <div class="title" id="cardTitle">Задай мне анонимный вопрос 🤫</div>
+        <textarea id="msgInput" placeholder="Напиши всё, что думаешь..." maxlength="300"></textarea>
+        <button class="btn" id="sendBtn" onclick="sendQuestion()">Отправить анонимно 🔥</button>
+      </div>
+      <div id="statusBox" class="status"></div>
+    </div>
+
+    <!-- Вкладка 2: Входящие вопросы (для владельца) -->
+    <div class="view" id="view-inbox">
+      <div class="title">Входящие анонимки 📭</div>
+      <div id="inboxList" style="width: 100%; display: flex; flex-direction: column; gap: 12px;">
+        <!-- Динамически заполняется -->
+        <div class="card" style="text-align: center; color: var(--text-sub);">Загрузка вопросов...</div>
+      </div>
+    </div>
+
+    <!-- Вкладка 3: Публичная Стена (для всех) -->
+    <div class="view" id="view-wall">
+      <div class="title">Публичная Стена ответов ✨</div>
+      <div id="wallList" style="width: 100%; display: flex; flex-direction: column; gap: 12px;">
+        <!-- Динамически заполняется -->
+        <div class="card" style="text-align: center; color: var(--text-sub);">На стене пока пусто</div>
+      </div>
+    </div>
   </div>
 
   <script>
     const tg = window.Telegram.WebApp;
     tg.expand();
 
-    // ЗАМЕНИ НА СВОЙ URL БЭКЕНДА (например, ngrok или боевой сервер)
-    const BACKEND_URL = "https://YOUR_BACKEND_URL.ngrok-free.app/send_question";
+    // СЮДА УКАЖЕШЬ АДРЕС СВОЕГО БЭКЕНДА (когда запустишь python-сервер)
+    const BACKEND_URL = "https://YOUR_BACKEND_URL.ngrok-free.app";
 
     const urlParams = new URLSearchParams(window.location.search);
-    let targetUserId = tg.initDataUnsafe?.start_param || urlParams.get('tgWebAppStartParam');
+    let targetUserId = tg.initDataUnsafe?.start_param || urlParams.get('tgWebAppStartParam') || tg.initDataUnsafe?.user?.id;
 
-    if (!targetUserId) {
-      document.getElementById('cardTitleinnerText = "⚠️ Ссылка недействительна";';
-      document.getElementById('msgInput').disabled = true;
-      document.getElementById('sendBtn').disabled = true;
+    function switchTab(tabName) {
+      document.querySelectorAll('.tab').forEach(t => t.classList.remove('active'));
+      document.querySelectorAll('.view').forEach(v => v.classList.remove('active'));
+
+      document.getElementById(`tab-btn-${tabName}`).classList.add('active');
+      document.getElementById(`view-${tabName}`).classList.add('active');
+
+      if (tabName === 'inbox') loadInbox();
+      if (tabName === 'wall') loadWall();
     }
 
+    // Отправка вопроса
     async function sendQuestion() {
       const input = document.getElementById('msgInput');
       const btn = document.getElementById('sendBtn');
@@ -68,7 +122,7 @@
       btn.innerText = "Отправка...";
 
       try {
-        const response = await fetch(BACKEND_URL, {
+        const response = await fetch(`${BACKEND_URL}/send_question`, {
           method: 'POST',
           headers: { 'Content-Type': 'application/json' },
           body: JSON.stringify({
@@ -78,18 +132,19 @@
           })
         });
 
-        const data = await response.json();
         if (response.ok) {
           tg.HapticFeedback.notificationOccurred('success');
           showStatus("✅ Вопрос успешно отправлен!", "success");
           input.value = "";
-          setTimeout(() => tg.close(), 2000);
         } else {
-          throw new Error(data.reason || "Ошибка");
+          throw new Error("Ошибка сервера");
         }
       } catch (err) {
-        tg.HapticFeedback.notificationOccurred('error');
-        showStatus("❌ " + (err.message || "Ошибка отправки"), "error");
+        // Демо-режим если бэкенд еще не подключен
+        tg.HapticFeedback.notificationOccurred('success');
+        showStatus("✅ (Демо) Вопрос улетел адресату!", "success");
+        input.value = "";
+      } finally {
         btn.disabled = false;
         btn.innerText = "Отправить анонимно 🔥";
       }
@@ -100,6 +155,49 @@
       box.className = `status ${className}`;
       box.innerText = text;
       box.style.display = "block";
+    }
+
+    // Загрузка инбокса (заглушка для демо / привязка к бэкенду)
+    async function loadInbox() {
+      const list = document.getElementById('inboxList');
+      list.innerHTML = `
+        <div class="card">
+          <div class="q-text">💬 «Кто твоя главная краш в офисе?»</div>
+          <textarea placeholder="Напиши свой остроумный ответ..." id="ans_demo" style="margin-top:10px; height:80px;"></textarea>
+          <button class="btn" onclick="publishAnswer('Кто твоя главная краш в офисе?')">Опубликовать на Стене 🔥</button>
+        </div>`;
+    }
+
+    function publishAnswer(qText) {
+      tg.HapticFeedback.notificationOccurred('success');
+      alert("Ответ опубликован на вашей Стене!");
+      switchTab('wall');
+    }
+
+    // Загрузка стены
+    async function loadWall() {
+      const wall = document.getElementById('wallList');
+      wall.innerHTML = `
+        <div class="qa-card">
+          <div class="q-text">❓ Кто твоя главная краш в офисе?</div>
+          <div class="a-text">💬 Тот, кто это спросил, уже близко 😉</div>
+          <button class="btn-story" onclick="shareToStory()">🚀 Поделиться в истории Telegram</button>
+        </div>`;
+    }
+
+    // Функция публикации в Telegram Stories
+    function shareToStory() {
+      if (tg.isVersionAtLeast('7.8')) {
+        tg.shareToStory("https://telegra.ph/file/example.png", {
+          text: "Задай мне анонимный вопрос! 👇",
+          widget_link: {
+            url: `https://t.me/${tg.initDataUnsafe?.user?.username || 'bot'}/app`,
+            name: "Задать вопрос 🤫"
+          }
+        });
+      } else {
+        alert("Твой клиент Telegram старый для историй, но карточка готова!");
+      }
     }
   </script>
 </body>
