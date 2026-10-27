@@ -37,7 +37,7 @@
 
     /* Навигация */
     .nav-tabs { display: flex; width: 100%; background: var(--card); backdrop-filter: blur(20px); border-radius: 20px; padding: 4px; border: 1px solid var(--card-border); box-shadow: 0 10px 30px rgba(0,0,0,0.5); overflow-x: auto; }
-    .tab { flex: 1; text-align: center; padding: 10px 2px; font-size: 10px; font-weight: 600; color: var(--text-sub); cursor: pointer; border-radius: 14px; transition: all 0.3s; white-space: nowrap; }
+    .tab { flex: 1; text-align: center; padding: 10px 2px; font-size: 11px; font-weight: 600; color: var(--text-sub); cursor: pointer; border-radius: 14px; transition: all 0.3s; white-space: nowrap; }
     .tab.active { background: var(--accent); color: white; box-shadow: 0 4px 20px rgba(255, 46, 126, 0.4); }
 
     .view { display: none; width: 100%; flex-direction: column; gap: 16px; animation: fadeIn 0.3s ease; }
@@ -69,19 +69,25 @@
     .friend-status { font-size: 11px; color: var(--text-sub); margin-top: 2px; }
     .friend-action-btn { background: var(--accent); color: white; border: none; padding: 8px 12px; border-radius: 12px; font-weight: 600; font-size: 12px; cursor: pointer; }
 
-    /* Магазин с выбором оплаты */
-    .store-card { display: flex; flex-direction: column; gap: 12px; background: rgba(255,255,255,0.03); padding: 18px; border-radius: 20px; border: 1px solid var(--card-border); }
-    .store-info h4 { font-size: 16px; font-weight: 700; }
-    .store-info p { font-size: 12px; color: var(--text-sub); margin-top: 2px; }
-    
-    .buy-options { display: flex; gap: 10px; width: 100%; margin-top: 4px; }
-    .buy-btn-coin { flex: 1; background: #fbbf24; color: #000; border: none; padding: 12px; border-radius: 14px; font-weight: 800; font-size: 13px; cursor: pointer; }
-    .buy-btn-rub { flex: 1; background: linear-gradient(135deg, #10b981 0%, #059669 100%); color: #fff; border: none; padding: 12px; border-radius: 14px; font-weight: 800; font-size: 13px; cursor: pointer; }
-
+    /* Карточки вопросов */
     .qa-card { background: var(--card); border-radius: 24px; padding: 20px; width: 100%; border: 1px solid var(--card-border); display: flex; flex-direction: column; gap: 10px; }
-    .q-badge { font-size: 11px; font-weight: 700; text-transform: uppercase; color: #FF2E7E; }
+    .q-badge { font-size: 11px; font-weight: 700; text-transform: uppercase; color: #FF2E7E; display: flex; justify-content: space-between; align-items: center; }
     .q-text { font-size: 14px; color: var(--text-sub); }
     .a-text { font-size: 16px; font-weight: 600; color: #fff; line-height: 1.4; }
+    .author-tag { font-size: 12px; font-weight: 700; color: #4ade80; background: rgba(34,197,94,0.1); padding: 4px 8px; border-radius: 8px; display: inline-block; }
+
+    .reveal-inline-btn { background: rgba(251, 191, 36, 0.15); color: #fbbf24; border: 1px solid rgba(251, 191, 36, 0.3); padding: 8px 12px; border-radius: 12px; font-weight: 700; font-size: 12px; cursor: pointer; display: flex; align-items: center; justify-content: center; gap: 6px; margin-top: 6px; }
+
+    /* Модальное окно */
+    .modal-overlay { position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.7); backdrop-filter: blur(10px); display: none; align-items: center; justify-content: center; z-index: 1000; padding: 20px; }
+    .modal-content { background: #12151c; border: 1px solid rgba(255,255,255,0.1); border-radius: 24px; padding: 24px; width: 100%; max-width: 360px; display: flex; flex-direction: column; gap: 16px; text-align: center; box-shadow: 0 20px 50px rgba(0,0,0,0.6); }
+    .modal-title { font-size: 18px; font-weight: 700; }
+    .modal-sub { font-size: 13px; color: var(--text-sub); }
+    
+    .modal-buy-options { display: flex; gap: 10px; width: 100%; margin-top: 6px; }
+    .modal-btn-coin { flex: 1; background: #fbbf24; color: #000; border: none; padding: 14px; border-radius: 14px; font-weight: 800; font-size: 13px; cursor: pointer; }
+    .modal-btn-rub { flex: 1; background: linear-gradient(135deg, #10b981 0%, #059669 100%); color: #fff; border: none; padding: 14px; border-radius: 14px; font-weight: 800; font-size: 13px; cursor: pointer; }
+    .modal-close { background: rgba(255,255,255,0.08); color: var(--text-sub); border: none; padding: 10px; border-radius: 14px; font-weight: 600; font-size: 13px; cursor: pointer; }
 
     .status { padding: 12px; border-radius: 16px; text-align: center; font-size: 13px; font-weight: 600; width: 100%; display: none; }
   </style>
@@ -97,22 +103,21 @@
       </div>
     </div>
 
-    <!-- Навигация -->
+    <!-- Навигация (Вместо Инбокс теперь Сообщения) -->
     <div class="nav-tabs" id="navTabs">
       <div class="tab active" onclick="switchTab('main')" id="tab-btn-main">Главная</div>
-      <div class="tab" onclick="switchTab('inbox')" id="tab-btn-inbox">Инбокс 📥</div>
+      <div class="tab" onclick="switchTab('inbox')" id="tab-btn-inbox">Сообщения 📥</div>
       <div class="tab" onclick="switchTab('wall')" id="tab-btn-wall">Стена 🏛</div>
       <div class="tab" onclick="switchTab('friends')" id="tab-btn-friends">Друзья 👥</div>
-      <div class="tab" onclick="switchTab('store')" id="tab-btn-store">Магазин ⭐️</div>
     </div>
 
-    <!-- Вкладка 1: Главная -->
+    <!-- Вкладка 1: Главная (Открывается всегда по умолчанию) -->
     <div class="view active" id="view-main">
       <div class="card" id="mainCardContent"></div>
       <div id="statusBox" class="status"></div>
     </div>
 
-    <!-- Вкладка 2: Инбокс -->
+    <!-- Вкладка 2: Сообщения (бывший Инбокс) -->
     <div class="view" id="view-inbox">
       <div id="inboxList" style="width: 100%; display: flex; flex-direction: column; gap: 12px;"></div>
     </div>
@@ -126,27 +131,21 @@
     <div class="view" id="view-friends">
       <div class="title" style="text-align: left; margin-bottom: 2px;">Приглашай и зарабатывай 👥</div>
       <div class="subtitle" style="text-align: left; margin-bottom: 6px;">За каждого друга даем +150 монет вам обоим!</div>
-      
       <div style="width: 100%; display: flex; flex-direction: column; gap: 10px;" id="friendsListContainer"></div>
-      
       <button class="btn" style="margin-top: 10px;" onclick="inviteAndEarn()">🚀 Позови друга (+150 монет)</button>
     </div>
+  </div>
 
-    <!-- Вкладка 5: Магазин -->
-    <div class="view" id="view-store">
-      <div class="title" style="text-align: left; margin-bottom: 4px;">Магазин Услуг ⭐️</div>
-      <div class="subtitle" style="text-align: left; margin-bottom: 10px;">Раскрывай тайны за монеты или рубли</div>
-      
-      <div class="store-card">
-        <div class="store-info">
-          <h4>🕵️‍♂️ Раскрыть автора анонимки</h4>
-          <p>Узнай, кто на самом деле написал сообщение</p>
-        </div>
-        <div class="buy-options">
-          <button class="buy-btn-coin" onclick="buyRevealCoins(500)">500 🪙</button>
-          <button class="buy-btn-rub" onclick="buyRevealRubles(50)">50 ₽</button>
-        </div>
+  <!-- Модальное окно оплаты -->
+  <div class="modal-overlay" id="revealModal">
+    <div class="modal-content">
+      <div class="modal-title">🕵️‍♂️ Узнать автора?</div>
+      <div class="modal-sub">Эта информация останется видна **только тебе** на твоем устройстве. Выбери способ оплаты:</div>
+      <div class="modal-buy-options">
+        <button class="modal-btn-coin" onclick="payWithCoins()">500 🪙</button>
+        <button class="modal-btn-rub" onclick="payWithRubles()">50 ₽</button>
       </div>
+      <button class="modal-close" onclick="closeModal()">Отмена</button>
     </div>
   </div>
 
@@ -164,7 +163,6 @@
 
     let userCoins = parseInt(localStorage.getItem('coins')) || 150;
     
-    // 🔥 ДВУСТОРОННИЙ БОНУС ЗА ПРИГЛАШЕНИЕ (+150 МОНЕТ)
     let hasClaimedRef = localStorage.getItem('claimed_ref');
     if (isVisiting && !hasClaimedRef) {
       userCoins += 150; 
@@ -175,13 +173,14 @@
 
     document.getElementById('userCoins').innerText = userCoins;
 
+    // Хранилище входящих сообщений (с фиксацией раскрытых авторов в localStorage)
     let inboxData = JSON.parse(localStorage.getItem('inbox')) || [
-      { id: 1, text: "Кто твоя главная краш в офисе?" },
-      { id: 2, text: "Какая твоя самая безумная мечта?" }
+      { id: 1, text: "Кто твоя главная краш в офисе?", author: null },
+      { id: 2, text: "Какая твоя самая безумная мечта?", author: null }
     ];
     
     let wallData = JSON.parse(localStorage.getItem('wall')) || [
-      { q: "Любимый сериал?", a: "Твое молчание по вечерам 😉" }
+      { q: "Любимый сериал?", a: "Твое молчание по вечерам 😉", author: null }
     ];
 
     let telegramFriends = [
@@ -190,11 +189,14 @@
       { id: 888333, name: "Максим Ковалев", avatar: "🚀", active: false }
     ];
 
+    // Переменная для хранения ID текущего сообщения, которое пытаются раскрыть
+    let currentRevealId = null;
+    let currentRevealType = null; // 'inbox' или 'wall'
+
     if (isVisiting) {
       document.getElementById('topBarTitle').innerText = `Стена юзера #${targetUserId}`;
       document.getElementById('tab-btn-inbox').style.display = 'none';
       document.getElementById('tab-btn-friends').style.display = 'none';
-      document.getElementById('tab-btn-store').style.display = 'none';
     }
 
     function updateCoins(amount) {
@@ -240,7 +242,6 @@
       alert("Ссылка скопирована!");
     }
 
-    // 🔥 ПРИГЛАШЕНИЕ ДРУГА = +150 МОНЕТ
     function inviteAndEarn() {
       const botUsername = "your_bot_name";
       const myLink = `https://t.me/${botUsername}/app?startapp=${myUserId}`;
@@ -307,16 +308,21 @@
     function loadInbox() {
       const list = document.getElementById('inboxList');
       if (inboxData.length === 0) {
-        list.innerHTML = `<div class="card" style="text-align: center; color: var(--text-sub);">📭 Входящих вопросов пока нет</div>`;
+        list.innerHTML = `<div class="card" style="text-align: center; color: var(--text-sub);">📭 Входящих сообщений пока нет</div>`;
         return;
       }
       list.innerHTML = "";
       inboxData.forEach((item) => {
+        let authorHtml = item.author 
+          ? `<div class="author-tag">👤 Автор: ${item.author}</div>`
+          : `<button class="reveal-inline-btn" onclick="openModal(${item.id}, 'inbox')">🕵️‍♂️ Узнать кто написал</button>`;
+
         list.innerHTML += `
           <div class="card">
-            <div class="q-badge">Входящий</div>
+            <div class="q-badge"><span>Входящий</span></div>
             <div class="q-text" style="font-size: 15px; color: #fff;">«${item.text}»</div>
-            <textarea placeholder="Напиши ответ..." id="ans_${item.id}" style="height:80px;"></textarea>
+            ${authorHtml}
+            <textarea placeholder="Напиши ответ..." id="ans_${item.id}" style="height:80px; margin-top:6px;"></textarea>
             <button class="btn" onclick="publishAnswer(${item.id}, '${item.text}')">Опубликовать на Стене 🔥</button>
           </div>`;
       });
@@ -327,10 +333,11 @@
       const aText = ansInput.value.trim();
       if (!aText) { alert("Напиши ответ!"); return; }
 
-      wallData.unshift({ q: qText, a: aText });
+      const item = inboxData.find(i => i.id === id);
+      wallData.unshift({ q: qText, a: aText, author: item ? item.author : null });
       localStorage.setItem('wall', JSON.stringify(wallData));
 
-      inboxData = inboxData.filter(item => item.id !== id);
+      inboxData = inboxData.filter(i => i.id !== id);
       localStorage.setItem('inbox', JSON.stringify(inboxData));
 
       tg.HapticFeedback.notificationOccurred('success');
@@ -345,18 +352,22 @@
         return;
       }
       wall.innerHTML = "";
-      wallData.forEach(item => {
+      wallData.forEach((item, index) => {
+        let authorHtml = item.author 
+          ? `<div class="author-tag">👤 Автор: ${item.author}</div>`
+          : `<button class="reveal-inline-btn" onclick="openModal(${index}, 'wall')">🕵️‍♂️ Узнать кто написал</button>`;
+
         wall.innerHTML += `
           <div class="qa-card">
-            <div class="q-badge">Вопрос</div>
+            <div class="q-badge"><span>Вопрос</span></div>
             <div class="q-text">«${item.q}»</div>
             <div class="a-text">💬 ${item.a}</div>
+            ${authorHtml}
             ${!isVisiting ? `<button class="btn" style="padding: 10px; font-size: 13px; margin-top: 6px; background: rgba(255,255,255,0.1);" onclick="shareToStoryAndEarn()">🚀 Поделиться в истории (+100 монет)</button>` : ''}
           </div>`;
       });
     }
 
-    // 🔥 СТОРИС = +100 МОНЕТ
     function shareToStoryAndEarn() {
       if (tg.isVersionAtLeast('7.8')) {
         tg.shareToStory("https://telegra.ph/file/example.png", {
@@ -370,24 +381,58 @@
       alert("🔥 Сторис опубликована! Получено +100 монет ✨");
     }
 
-    // 🔥 ПОКУПКА ЗА МОНЕТЫ (500 🪙)
-    function buyRevealCoins(cost) {
+    // Открытие модалки с привязкой к конкретному сообщению
+    function openModal(id, type) {
+      currentRevealId = id;
+      currentRevealType = type;
+      document.getElementById('revealModal').style.display = 'flex';
+      tg.HapticFeedback.impactOccurred('medium');
+    }
+
+    function closeModal() {
+      document.getElementById('revealModal').style.display = 'none';
+      currentRevealId = null;
+      currentRevealType = null;
+    }
+
+    // Персональная оплата монетами (сохраняется только у юзера в localStorage)
+    function payWithCoins() {
+      const cost = 500;
       if (userCoins >= cost) {
         updateCoins(-cost);
-        tg.HapticFeedback.notificationOccurred('success');
-        alert("🕵️‍♂️ Автор раскртит: это ваш друг Алексей Смирнов (ID: 888111)!");
+        revealAuthorForMe("Алексей Смирнов (ID: 888111)");
+        closeModal();
       } else {
         tg.HapticFeedback.notificationOccurred('error');
-        alert(`❌ Не хватает монет! Нужно 500 монет. Опубликуй сторис (+100) или пригласи друзей (+150)!`);
+        alert(`❌ Не хватает монет! Нужно 500 монет. Опубликуй сторис (+100) или позови друга (+150)!`);
       }
     }
 
-    // 🔥 ПОКУПКА ЗА РУБЛИ (50 ₽ через Telegram Stars)
-    function buyRevealRubles(price) {
+    // Персональная оплата рублями
+    function payWithRubles() {
+      closeModal();
       tg.HapticFeedback.notificationOccurred('success');
-      alert(`💳 Оплата 50 ₽ (${price} Stars) через Telegram Payments. Открываем окно оплаты...`);
+      // Имитация успешной оплаты через Telegram Stars
+      revealAuthorForMe("Алексей Смирнов (ID: 888111)");
     }
 
+    // Функция персонального рассекречивания (видна только тебе)
+    function revealAuthorForMe(authorName) {
+      if (currentRevealType === 'inbox') {
+        const item = inboxData.find(i => i.id === currentRevealId);
+        if (item) item.author = authorName;
+        localStorage.setItem('inbox', JSON.stringify(inboxData));
+        loadInbox();
+      } else if (currentRevealType === 'wall') {
+        if (wallData[currentRevealId]) wallData[currentRevealId].author = authorName;
+        localStorage.setItem('wall', JSON.stringify(wallData));
+        loadWall();
+      }
+      tg.HapticFeedback.notificationOccurred('success');
+      alert(`🕵️‍♂️ Успешно! Только ты видишь, что автор этого сообщения — ${authorName}`);
+    }
+
+    // Запуск по умолчанию на главной
     renderMainScreen();
   </script>
 </body>
