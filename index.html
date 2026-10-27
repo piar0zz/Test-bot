@@ -3,7 +3,7 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no">
-  <title>Анонимные Вопросы & Друзья</title>
+  <title>Анонимные Вопросы & Стены</title>
   <script src="https://telegram.org/js/telegram-web-app.js"></script>
   <style>
     :root {
@@ -35,7 +35,7 @@
     .top-bar { width: 100%; display: flex; justify-content: space-between; align-items: center; background: var(--card); padding: 10px 16px; border-radius: 16px; border: 1px solid var(--card-border); }
     .balance-badge { display: flex; align-items: center; gap: 6px; font-weight: 700; color: #fbbf24; font-size: 14px; }
 
-    /* Навигация (компактная для 6 вкладок) */
+    /* Навигация */
     .nav-tabs { display: flex; width: 100%; background: var(--card); backdrop-filter: blur(20px); border-radius: 20px; padding: 4px; border: 1px solid var(--card-border); box-shadow: 0 10px 30px rgba(0,0,0,0.5); overflow-x: auto; }
     .tab { flex: 1; text-align: center; padding: 10px 2px; font-size: 10px; font-weight: 600; color: var(--text-sub); cursor: pointer; border-radius: 14px; transition: all 0.3s; white-space: nowrap; }
     .tab.active { background: var(--accent); color: white; box-shadow: 0 4px 20px rgba(255, 46, 126, 0.4); }
@@ -67,15 +67,13 @@
     .friend-avatar { width: 40px; height: 40px; border-radius: 50%; background: linear-gradient(135deg, #3b82f6, #1d4ed8); display: flex; align-items: center; justify-content: center; font-size: 18px; font-weight: bold; }
     .friend-name { font-size: 14px; font-weight: 600; }
     .friend-status { font-size: 11px; color: var(--text-sub); margin-top: 2px; }
-    .friend-action-btn { background: rgba(255,255,255,0.1); color: white; border: none; padding: 8px 12px; border-radius: 12px; font-weight: 600; font-size: 12px; cursor: pointer; }
-    .friend-action-btn.active-visit { background: var(--accent); }
+    .friend-action-btn { background: var(--accent); color: white; border: none; padding: 8px 12px; border-radius: 12px; font-weight: 600; font-size: 12px; cursor: pointer; }
 
-    /* Квесты и карточки */
-    .quest-card { display: flex; justify-content: space-between; align-items: center; background: rgba(255,255,255,0.03); padding: 14px 16px; border-radius: 18px; border: 1px solid var(--card-border); }
-    .quest-info h4 { font-size: 14px; font-weight: 600; }
-    .quest-info p { font-size: 12px; color: var(--text-sub); margin-top: 2px; }
-    .claim-btn { background: #10b981; color: white; border: none; padding: 8px 12px; border-radius: 12px; font-weight: 700; font-size: 12px; cursor: pointer; }
-    .claim-btn.done { background: rgba(255,255,255,0.1); color: var(--text-sub); cursor: default; }
+    /* Магазин */
+    .store-card { display: flex; justify-content: space-between; align-items: center; background: rgba(255,255,255,0.03); padding: 16px; border-radius: 18px; border: 1px solid var(--card-border); }
+    .store-info h4 { font-size: 14px; font-weight: 600; }
+    .store-info p { font-size: 12px; color: var(--text-sub); margin-top: 2px; }
+    .buy-btn { background: #fbbf24; color: #000; border: none; padding: 8px 14px; border-radius: 12px; font-weight: 800; font-size: 12px; cursor: pointer; }
 
     .qa-card { background: var(--card); border-radius: 24px; padding: 20px; width: 100%; border: 1px solid var(--card-border); display: flex; flex-direction: column; gap: 10px; }
     .q-badge { font-size: 11px; font-weight: 700; text-transform: uppercase; color: #FF2E7E; }
@@ -93,17 +91,16 @@
     <div class="top-bar">
       <span style="font-size: 13px; font-weight: 600; color: var(--text-sub);" id="topBarTitle">Твой профиль 🥷</span>
       <div class="balance-badge">
-        <span>✨</span> <span id="userCoins">150</span> монет
+        <span>✨</span> <span id="userCoins">50</span> монет
       </div>
     </div>
 
-    <!-- Навигация (6 вкладок) -->
+    <!-- Навигация -->
     <div class="nav-tabs" id="navTabs">
       <div class="tab active" onclick="switchTab('main')" id="tab-btn-main">Главная</div>
       <div class="tab" onclick="switchTab('inbox')" id="tab-btn-inbox">Инбокс 📥</div>
       <div class="tab" onclick="switchTab('wall')" id="tab-btn-wall">Стена 🏛</div>
       <div class="tab" onclick="switchTab('friends')" id="tab-btn-friends">Друзья 👥</div>
-      <div class="tab" onclick="switchTab('quests')" id="tab-btn-quests">Квесты 🎯</div>
       <div class="tab" onclick="switchTab('store')" id="tab-btn-store">Магазин ⭐️</div>
     </div>
 
@@ -123,35 +120,27 @@
       <div id="wallList" style="width: 100%; display: flex; flex-direction: column; gap: 12px;"></div>
     </div>
 
-    <!-- Вкладка 4: Список друзей из Telegram -->
+    <!-- Вкладка 4: Друзья и Рефералы -->
     <div class="view" id="view-friends">
-      <div class="title" style="text-align: left; margin-bottom: 2px;">Контакты и друзья 👥</div>
-      <div class="subtitle" style="text-align: left; margin-bottom: 6px;">Переходи на стены друзей или приглашай новых</div>
+      <div class="title" style="text-align: left; margin-bottom: 2px;">Реферальный бонус 👥</div>
+      <div class="subtitle" style="text-align: left; margin-bottom: 6px;">Вы и ваш друг получаете по +50 монет мгновенно!</div>
       
-      <div style="width: 100%; display: flex; flex-direction: column; gap: 10px;" id="friendsListContainer">
-        <!-- Динамический список контактов -->
-      </div>
+      <div style="width: 100%; display: flex; flex-direction: column; gap: 10px;" id="friendsListContainer"></div>
       
-      <button class="btn" style="margin-top: 10px;" onclick="inviteMoreFriends()">➕ Пригласить друзей</button>
+      <button class="btn" style="margin-top: 10px;" onclick="inviteAndEarn()">🚀 Пригласить друга (+50 вам и ему)</button>
     </div>
 
-    <!-- Вкладка 5: Квесты -->
-    <div class="view" id="view-quests">
-      <div class="title" style="text-align: left; margin-bottom: 2px;">Ежедневные квесты 🎯</div>
-      <div class="subtitle" style="text-align: left; margin-bottom: 6px;">Выполняй задания и забирай монеты!</div>
-      <div id="questsList" style="width: 100%; display: flex; flex-direction: column; gap: 10px;"></div>
-    </div>
-
-    <!-- Вкладка 6: Магазин -->
+    <!-- Вкладка 5: Магазин -->
     <div class="view" id="view-store">
-      <div class="title" style="text-align: left; margin-bottom: 4px;">Магазин наград ⭐️</div>
-      <div class="subtitle" style="text-align: left; margin-bottom: 10px;">Трать монеты или звезды</div>
-      <div class="quest-card">
-        <div class="quest-info">
-          <h4>🕵️‍♂️ Раскрыть автора</h4>
-          <p>Узнай, кто прислал анонимку</p>
+      <div class="title" style="text-align: left; margin-bottom: 4px;">Элитный магазин ⭐️</div>
+      <div class="subtitle" style="text-align: left; margin-bottom: 10px;">Копи монеты за сторис и приглашения</div>
+      
+      <div class="store-card">
+        <div class="store-info">
+          <h4>🕵️‍♂️ Раскрыть автора анонимки</h4>
+          <p>Узнай, кто скрывается за сообщением</p>
         </div>
-        <button class="claim-btn" style="background:#3b82f6;" onclick="buyItem(50)">50 монет</button>
+        <button class="buy-btn" onclick="buyReveal(500)">500 🪙</button>
       </div>
     </div>
   </div>
@@ -161,12 +150,25 @@
     tg.expand();
 
     const myUserId = tg.initDataUnsafe?.user?.id || 12345;
+    
     const urlParams = new URLSearchParams(window.location.search);
-    let targetUserId = tg.initDataUnsafe?.start_param || urlParams.get('tgWebAppStartParam');
+    let targetUserId = tg.initDataUnsafe?.start_param || urlParams.get('startapp') || urlParams.get('tgWebAppStartParam');
 
-    const isVisiting = targetUserId && targetUserId != myUserId;
+    if (targetUserId == myUserId) targetUserId = null;
+    const isVisiting = Boolean(targetUserId);
 
-    let userCoins = parseInt(localStorage.getItem('coins')) || 150;
+    let userCoins = parseInt(localStorage.getItem('coins')) || 50;
+    
+    // --- ДВУСТОРОННЯЯ РЕФЕРАЛЬНАЯ ЛОГИКА ---
+    // Проверяем, зашел ли пользователь впервые по чьей-то ссылке
+    let hasClaimedRef = localStorage.getItem('claimed_ref');
+    if (isVisiting && !hasClaimedRef) {
+      userCoins += 50; // Начисляем бонус новичку
+      localStorage.setItem('coins', userCoins);
+      localStorage.setItem('claimed_ref', 'true');
+      alert(`🎉 Добро пожаловать! Вы перешли по ссылке друга и получили бонус: +50 монет! (Пригласивший вас пользователь также получил +50 монет)`);
+    }
+
     document.getElementById('userCoins').innerText = userCoins;
 
     let inboxData = JSON.parse(localStorage.getItem('inbox')) || [
@@ -178,13 +180,6 @@
       { q: "Любимый сериал?", a: "Твое молчание по вечерам 😉" }
     ];
 
-    let questsData = JSON.parse(localStorage.getItem('quests')) || [
-      { id: 1, title: "Задай 3 вопроса друзьям", reward: 30, progress: 1, target: 3, done: false },
-      { id: 2, title: "Опубликуй 2 ответа на стене", reward: 50, progress: 0, target: 2, done: false },
-      { id: 3, title: "Поделись ссылкой в сторис", reward: 40, progress: 0, target: 1, done: false }
-    ];
-
-    // Имитация списка контактов Telegram (в реальном приложении подтягиваются ID друзей)
     let telegramFriends = [
       { id: 888111, name: "Алексей Смирнов", avatar: "👨‍💻", active: true },
       { id: 888222, name: "Катя Васильева", avatar: "👩‍🎨", active: true },
@@ -192,10 +187,10 @@
     ];
 
     if (isVisiting) {
-      document.getElementById('topBarTitle').innerText = `Профиль юзера #${targetUserId}`;
+      document.getElementById('topBarTitle').innerText = `Стена юзера #${targetUserId}`;
       document.getElementById('tab-btn-inbox').style.display = 'none';
-      document.getElementById('tab-btn-quests').style.display = 'none';
       document.getElementById('tab-btn-friends').style.display = 'none';
+      document.getElementById('tab-btn-store').style.display = 'none';
     }
 
     function updateCoins(amount) {
@@ -208,23 +203,25 @@
       const container = document.getElementById('mainCardContent');
       
       if (!isVisiting) {
-        const myLink = `https://t.me/your_bot_name/app?startapp=${myUserId}`;
+        const botUsername = "your_bot_name"; // Заменишь на имя своего бота из BotFather
+        const myLink = `https://t.me/${botUsername}/app?startapp=${myUserId}`;
+        
         container.innerHTML = `
           <div class="profile-header">
             <div class="avatar">👑</div>
             <div class="title">Твой личный кабинет</div>
-            <div class="subtitle">Приглашай друзей и собирай вопросы!</div>
+            <div class="subtitle">Дай другу ссылку — и вы оба получите по +50 монет! 🤝</div>
           </div>
           <div class="link-box">${myLink}</div>
           <button class="btn" onclick="copyMyLink('${myLink}')">📋 Скопировать ссылку</button>
-          <button class="btn btn-secondary" onclick="shareToFriendsDirectly()">🚀 Отправить друзьям в чат</button>
+          <button class="btn btn-secondary" onclick="inviteAndEarn()">🚀 Поделиться с другом (+50 монет)</button>
         `;
       } else {
         container.innerHTML = `
           <div class="profile-header">
             <div class="avatar">🎯</div>
             <div class="title">Стена пользователя #${targetUserId}</div>
-            <div class="subtitle">Задай анонимный вопрос, он не узнает автора 🔒</div>
+            <div class="subtitle">Задай анонимный вопрос, автор скрыт 🔒</div>
           </div>
           <textarea id="msgInput" placeholder="Напиши всё, что думаешь..." maxlength="300"></textarea>
           <button class="btn" id="sendBtn" onclick="sendQuestionToUser()">Отправить анонимно 🔥</button>
@@ -239,15 +236,17 @@
       alert("Ссылка скопирована!");
     }
 
-    function shareToFriendsDirectly() {
-      const myLink = `https://t.me/your_bot_name/app?startapp=${myUserId}`;
-      const text = encodeURIComponent("Задай мне анонимный вопрос в Telegram! 🤫👇\n" + myLink);
+    function inviteAndEarn() {
+      const botUsername = "your_bot_name";
+      const myLink = `https://t.me/${botUsername}/app?startapp=${myUserId}`;
+      const text = encodeURIComponent("Задай мне анонимный вопрос в Telegram! Переходи по ссылке и мы оба получим по +50 монет! 🤫👇\n" + myLink);
+      
       window.open(`https://t.me/share/url?url=${encodeURIComponent(myLink)}&text=${text}`);
-    }
-
-    function inviteMoreFriends() {
-      shareToFriendsDirectly();
-      updateQuestProgress(3);
+      
+      // Награда приглашающему
+      updateCoins(50);
+      tg.HapticFeedback.notificationOccurred('success');
+      alert("🎁 Бонус за отправку приглашения! +50 монет на ваш счет ✨");
     }
 
     function goToMyProfile() {
@@ -264,10 +263,8 @@
       if (tabName === 'inbox') loadInbox();
       if (tabName === 'wall') loadWall();
       if (tabName === 'friends') loadFriends();
-      if (tabName === 'quests') loadQuests();
     }
 
-    // Рендер списка друзей
     function loadFriends() {
       const container = document.getElementById('friendsListContainer');
       container.innerHTML = "";
@@ -279,10 +276,10 @@
               <div class="friend-avatar">${friend.avatar}</div>
               <div>
                 <div class="friend-name">${friend.name}</div>
-                <div class="friend-status">${friend.active ? '🟢 В игре' : '⚪️ Пригласить'}</div>
+                <div class="friend-status">${friend.active ? '🟢 В игре' : '⚪️ Не в игре'}</div>
               </div>
             </div>
-            <button class="friend-action-btn active-visit" onclick="visitFriendWall(${friend.id})">Стена 🏛</button>
+            <button class="friend-action-btn" onclick="visitFriendWall(${friend.id})">Стена 🏛</button>
           </div>
         `;
       });
@@ -290,7 +287,6 @@
 
     function visitFriendWall(friendId) {
       tg.HapticFeedback.notificationOccurred('success');
-      // Перенаправляем на стену друга через startapp параметр
       window.location.href = `${window.location.pathname}?startapp=${friendId}`;
     }
 
@@ -302,7 +298,6 @@
       tg.HapticFeedback.notificationOccurred('success');
       alert(`✅ Вопрос успешно отправлен пользователю #${targetUserId}!`);
       input.value = "";
-      updateQuestProgress(1);
     }
 
     function loadInbox() {
@@ -334,11 +329,8 @@
       inboxData = inboxData.filter(item => item.id !== id);
       localStorage.setItem('inbox', JSON.stringify(inboxData));
 
-      updateCoins(10);
-      updateQuestProgress(2);
-
       tg.HapticFeedback.notificationOccurred('success');
-      alert("🎉 Ответ опубликован! +10 монет ✨");
+      alert("🎉 Ответ опубликован на стене!");
       switchTab('wall');
     }
 
@@ -355,71 +347,32 @@
             <div class="q-badge">Вопрос</div>
             <div class="q-text">«${item.q}»</div>
             <div class="a-text">💬 ${item.a}</div>
-            ${!isVisiting ? `<button class="btn" style="padding: 10px; font-size: 13px; margin-top: 6px; background: rgba(255,255,255,0.1);" onclick="shareToStory()">🚀 Поделиться в истории</button>` : ''}
+            ${!isVisiting ? `<button class="btn" style="padding: 10px; font-size: 13px; margin-top: 6px; background: rgba(255,255,255,0.1);" onclick="shareToStoryAndEarn()">🚀 Поделиться в истории (+100 монет)</button>` : ''}
           </div>`;
       });
     }
 
-    function loadQuests() {
-      const list = document.getElementById('questsList');
-      list.innerHTML = "";
-      questsData.forEach(q => {
-        const isReady = q.progress >= q.target && !q.done;
-        list.innerHTML += `
-          <div class="quest-card">
-            <div class="quest-info">
-              <h4>${q.title}</h4>
-              <p>Прогресс: ${q.progress}/${q.target} • Награда: +${q.reward} монет</p>
-            </div>
-            <button class="claim-btn ${q.done ? 'done' : ''}" ${isReady && !q.done ? `onclick="claimQuest(${q.id})"` : ''}>
-              ${q.done ? 'Выполнено' : (isReady ? 'Забрать' : 'В процессе')}
-            </button>
-          </div>`;
-      });
-    }
-
-    function updateQuestProgress(questId) {
-      questsData.forEach(q => {
-        if (q.id === questId && !q.done) {
-          q.progress = Math.min(q.target, q.progress + 1);
-        }
-      });
-      localStorage.setItem('quests', JSON.stringify(questsData));
-    }
-
-    function claimQuest(questId) {
-      questsData.forEach(q => {
-        if (q.id === questId && !q.done) {
-          q.done = true;
-          updateCoins(q.reward);
-          tg.HapticFeedback.notificationOccurred('success');
-          alert(`🎁 Награда получена! +${q.reward} монет ✨`);
-        }
-      });
-      localStorage.setItem('quests', JSON.stringify(questsData));
-      loadQuests();
-    }
-
-    function buyItem(cost) {
-      if (userCoins >= cost) {
-        updateCoins(-cost);
-        tg.HapticFeedback.notificationOccurred('success');
-        alert("✅ Успешно приобретено!");
-      } else {
-        tg.HapticFeedback.notificationOccurred('error');
-        alert("❌ Не хватает монет! Выполняй квесты.");
-      }
-    }
-
-    function shareToStory() {
+    function shareToStoryAndEarn() {
       if (tg.isVersionAtLeast('7.8')) {
         tg.shareToStory("https://telegra.ph/file/example.png", {
           text: "Задай мне анонимный вопрос! 👇",
-          widget_link: { url: `https://t.me/bot/app`, name: "Задать вопрос 🤫" }
+          widget_link: { url: `https://t.me/your_bot_name/app?startapp=${myUserId}`, name: "Задать вопрос 🤫" }
         });
+      }
+      
+      updateCoins(100);
+      tg.HapticFeedback.notificationOccurred('success');
+      alert("🔥 Сторис опубликована! Получено +100 монет ✨");
+    }
+
+    function buyReveal(cost) {
+      if (userCoins >= cost) {
+        updateCoins(-cost);
+        tg.HapticFeedback.notificationOccurred('success');
+        alert("🕵️‍♂️ Функция активации: автор последнего вопроса — Алексей (ID: 888111)");
       } else {
-        updateQuestProgress(3);
-        alert("Карточка готова к публикации в истории! Квест засчитан.");
+        tg.HapticFeedback.notificationOccurred('error');
+        alert(`❌ Недостаточно монет! Нужно ${cost} монет. Приглашай друзей и пости сторис, чтобы накопить!`);
       }
     }
 
