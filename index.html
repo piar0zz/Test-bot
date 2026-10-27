@@ -50,7 +50,7 @@
     .profile-header { display: flex; flex-direction: column; align-items: center; gap: 10px; }
     .avatar { width: 72px; height: 72px; border-radius: 50%; background: var(--accent); display: flex; align-items: center; justify-content: center; font-size: 32px; box-shadow: 0 0 30px rgba(255, 46, 126, 0.4); border: 2px solid rgba(255,255,255,0.2); }
     .title { font-size: 18px; font-weight: 700; text-align: center; }
-    .subtitle { font-size: 13px; color: var(--text-sub); text-align: center; }
+    .subtitle { font-size: 13px; color: var(--text-sub); text-align: center; line-height: 1.4; }
 
     textarea { width: 100%; height: 110px; background: rgba(0, 0, 0, 0.3); border: 1px solid var(--card-border); border-radius: 20px; padding: 16px; color: #fff; font-size: 15px; outline: none; resize: none; transition: all 0.3s; }
     textarea:focus { border-color: #FF2E7E; box-shadow: 0 0 15px rgba(255, 46, 126, 0.2); }
@@ -103,7 +103,7 @@
       </div>
     </div>
 
-    <!-- Навигация (Вместо Инбокс теперь Сообщения) -->
+    <!-- Навигация -->
     <div class="nav-tabs" id="navTabs">
       <div class="tab active" onclick="switchTab('main')" id="tab-btn-main">Главная</div>
       <div class="tab" onclick="switchTab('inbox')" id="tab-btn-inbox">Сообщения 📥</div>
@@ -111,13 +111,13 @@
       <div class="tab" onclick="switchTab('friends')" id="tab-btn-friends">Друзья 👥</div>
     </div>
 
-    <!-- Вкладка 1: Главная (Открывается всегда по умолчанию) -->
+    <!-- Вкладка 1: Главная -->
     <div class="view active" id="view-main">
       <div class="card" id="mainCardContent"></div>
       <div id="statusBox" class="status"></div>
     </div>
 
-    <!-- Вкладка 2: Сообщения (бывший Инбокс) -->
+    <!-- Вкладка 2: Сообщения -->
     <div class="view" id="view-inbox">
       <div id="inboxList" style="width: 100%; display: flex; flex-direction: column; gap: 12px;"></div>
     </div>
@@ -173,7 +173,6 @@
 
     document.getElementById('userCoins').innerText = userCoins;
 
-    // Хранилище входящих сообщений (с фиксацией раскрытых авторов в localStorage)
     let inboxData = JSON.parse(localStorage.getItem('inbox')) || [
       { id: 1, text: "Кто твоя главная краш в офисе?", author: null },
       { id: 2, text: "Какая твоя самая безумная мечта?", author: null }
@@ -189,9 +188,8 @@
       { id: 888333, name: "Максим Ковалев", avatar: "🚀", active: false }
     ];
 
-    // Переменная для хранения ID текущего сообщения, которое пытаются раскрыть
     let currentRevealId = null;
-    let currentRevealType = null; // 'inbox' или 'wall'
+    let currentRevealType = null;
 
     if (isVisiting) {
       document.getElementById('topBarTitle').innerText = `Стена юзера #${targetUserId}`;
@@ -216,7 +214,7 @@
           <div class="profile-header">
             <div class="avatar">👑</div>
             <div class="title">Твой личный кабинет</div>
-            <div class="subtitle">Отправь ссылку другу — вы оба получите по +150 монет! 🤝</div>
+            <div class="subtitle">Отправь ссылку другу — перейдя по ней, он сможет задать тебе анонимный вопрос! Вы оба получите по +150 монет 🤝</div>
           </div>
           <div class="link-box">${myLink}</div>
           <button class="btn" onclick="copyMyLink('${myLink}')">📋 Скопировать ссылку</button>
@@ -227,7 +225,7 @@
           <div class="profile-header">
             <div class="avatar">🎯</div>
             <div class="title">Стена пользователя #${targetUserId}</div>
-            <div class="subtitle">Задай анонимный вопрос, автор скрыт 🔒</div>
+            <div class="subtitle">Ты перешел по ссылке друга! Задай ему анонимный вопрос, автор будет скрыт 🔒</div>
           </div>
           <textarea id="msgInput" placeholder="Напиши всё, что думаешь..." maxlength="300"></textarea>
           <button class="btn" id="sendBtn" onclick="sendQuestionToUser()">Отправить анонимно 🔥</button>
@@ -368,11 +366,15 @@
       });
     }
 
+    // 🔥 Интеграция с Telegram Stories (надпись и виджет-ссылка)
     function shareToStoryAndEarn() {
       if (tg.isVersionAtLeast('7.8')) {
         tg.shareToStory("https://telegra.ph/file/example.png", {
-          text: "Задай мне анонимный вопрос! 👇",
-          widget_link: { url: `https://t.me/your_bot_name/app?startapp=${myUserId}`, name: "Задать вопрос 🤫" }
+          text: "Задай мне анонимный вопрос! 🤫👇",
+          widget_link: {
+            url: `https://t.me/your_bot_name/app?startapp=${myUserId}`,
+            name: "Задать вопрос 💬"
+          }
         });
       }
       
@@ -381,7 +383,6 @@
       alert("🔥 Сторис опубликована! Получено +100 монет ✨");
     }
 
-    // Открытие модалки с привязкой к конкретному сообщению
     function openModal(id, type) {
       currentRevealId = id;
       currentRevealType = type;
@@ -395,7 +396,6 @@
       currentRevealType = null;
     }
 
-    // Персональная оплата монетами (сохраняется только у юзера в localStorage)
     function payWithCoins() {
       const cost = 500;
       if (userCoins >= cost) {
@@ -408,15 +408,12 @@
       }
     }
 
-    // Персональная оплата рублями
     function payWithRubles() {
       closeModal();
       tg.HapticFeedback.notificationOccurred('success');
-      // Имитация успешной оплаты через Telegram Stars
       revealAuthorForMe("Алексей Смирнов (ID: 888111)");
     }
 
-    // Функция персонального рассекречивания (видна только тебе)
     function revealAuthorForMe(authorName) {
       if (currentRevealType === 'inbox') {
         const item = inboxData.find(i => i.id === currentRevealId);
@@ -432,7 +429,6 @@
       alert(`🕵️‍♂️ Успешно! Только ты видишь, что автор этого сообщения — ${authorName}`);
     }
 
-    // Запуск по умолчанию на главной
     renderMainScreen();
   </script>
 </body>
