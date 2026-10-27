@@ -61,7 +61,7 @@
     .btn-secondary { background: rgba(255,255,255,0.08); color: #fff; border: 1px solid var(--card-border); margin-top: 6px; box-shadow: none; }
     .link-box { background: rgba(0,0,0,0.4); padding: 12px 16px; border-radius: 14px; font-size: 13px; color: #a5b4fc; word-break: break-all; border: 1px dashed rgba(255,255,255,0.1); text-align: center; }
 
-    /* Элементы списка друзей */
+    /* Друзья */
     .friend-item { display: flex; justify-content: space-between; align-items: center; background: rgba(255,255,255,0.03); padding: 12px 16px; border-radius: 18px; border: 1px solid var(--card-border); }
     .friend-info { display: flex; align-items: center; gap: 12px; }
     .friend-avatar { width: 40px; height: 40px; border-radius: 50%; background: linear-gradient(135deg, #3b82f6, #1d4ed8); display: flex; align-items: center; justify-content: center; font-size: 18px; font-weight: bold; }
@@ -69,11 +69,14 @@
     .friend-status { font-size: 11px; color: var(--text-sub); margin-top: 2px; }
     .friend-action-btn { background: var(--accent); color: white; border: none; padding: 8px 12px; border-radius: 12px; font-weight: 600; font-size: 12px; cursor: pointer; }
 
-    /* Магазин */
-    .store-card { display: flex; justify-content: space-between; align-items: center; background: rgba(255,255,255,0.03); padding: 16px; border-radius: 18px; border: 1px solid var(--card-border); }
-    .store-info h4 { font-size: 14px; font-weight: 600; }
+    /* Магазин с выбором оплаты */
+    .store-card { display: flex; flex-direction: column; gap: 12px; background: rgba(255,255,255,0.03); padding: 18px; border-radius: 20px; border: 1px solid var(--card-border); }
+    .store-info h4 { font-size: 16px; font-weight: 700; }
     .store-info p { font-size: 12px; color: var(--text-sub); margin-top: 2px; }
-    .buy-btn { background: #fbbf24; color: #000; border: none; padding: 8px 14px; border-radius: 12px; font-weight: 800; font-size: 12px; cursor: pointer; }
+    
+    .buy-options { display: flex; gap: 10px; width: 100%; margin-top: 4px; }
+    .buy-btn-coin { flex: 1; background: #fbbf24; color: #000; border: none; padding: 12px; border-radius: 14px; font-weight: 800; font-size: 13px; cursor: pointer; }
+    .buy-btn-rub { flex: 1; background: linear-gradient(135deg, #10b981 0%, #059669 100%); color: #fff; border: none; padding: 12px; border-radius: 14px; font-weight: 800; font-size: 13px; cursor: pointer; }
 
     .qa-card { background: var(--card); border-radius: 24px; padding: 20px; width: 100%; border: 1px solid var(--card-border); display: flex; flex-direction: column; gap: 10px; }
     .q-badge { font-size: 11px; font-weight: 700; text-transform: uppercase; color: #FF2E7E; }
@@ -81,7 +84,6 @@
     .a-text { font-size: 16px; font-weight: 600; color: #fff; line-height: 1.4; }
 
     .status { padding: 12px; border-radius: 16px; text-align: center; font-size: 13px; font-weight: 600; width: 100%; display: none; }
-    .success { background: rgba(34,197,94,0.15); color: #4ade80; border: 1px solid rgba(34,197,94,0.3); }
   </style>
 </head>
 <body>
@@ -91,7 +93,7 @@
     <div class="top-bar">
       <span style="font-size: 13px; font-weight: 600; color: var(--text-sub);" id="topBarTitle">Твой профиль 🥷</span>
       <div class="balance-badge">
-        <span>✨</span> <span id="userCoins">50</span> монет
+        <span>✨</span> <span id="userCoins">150</span> монет
       </div>
     </div>
 
@@ -120,27 +122,30 @@
       <div id="wallList" style="width: 100%; display: flex; flex-direction: column; gap: 12px;"></div>
     </div>
 
-    <!-- Вкладка 4: Друзья и Рефералы -->
+    <!-- Вкладка 4: Друзья -->
     <div class="view" id="view-friends">
-      <div class="title" style="text-align: left; margin-bottom: 2px;">Реферальный бонус 👥</div>
-      <div class="subtitle" style="text-align: left; margin-bottom: 6px;">Вы и ваш друг получаете по +50 монет мгновенно!</div>
+      <div class="title" style="text-align: left; margin-bottom: 2px;">Приглашай и зарабатывай 👥</div>
+      <div class="subtitle" style="text-align: left; margin-bottom: 6px;">За каждого друга даем +150 монет вам обоим!</div>
       
       <div style="width: 100%; display: flex; flex-direction: column; gap: 10px;" id="friendsListContainer"></div>
       
-      <button class="btn" style="margin-top: 10px;" onclick="inviteAndEarn()">🚀 Пригласить друга (+50 вам и ему)</button>
+      <button class="btn" style="margin-top: 10px;" onclick="inviteAndEarn()">🚀 Позови друга (+150 монет)</button>
     </div>
 
     <!-- Вкладка 5: Магазин -->
     <div class="view" id="view-store">
-      <div class="title" style="text-align: left; margin-bottom: 4px;">Элитный магазин ⭐️</div>
-      <div class="subtitle" style="text-align: left; margin-bottom: 10px;">Копи монеты за сторис и приглашения</div>
+      <div class="title" style="text-align: left; margin-bottom: 4px;">Магазин Услуг ⭐️</div>
+      <div class="subtitle" style="text-align: left; margin-bottom: 10px;">Раскрывай тайны за монеты или рубли</div>
       
       <div class="store-card">
         <div class="store-info">
           <h4>🕵️‍♂️ Раскрыть автора анонимки</h4>
-          <p>Узнай, кто скрывается за сообщением</p>
+          <p>Узнай, кто на самом деле написал сообщение</p>
         </div>
-        <button class="buy-btn" onclick="buyReveal(500)">500 🪙</button>
+        <div class="buy-options">
+          <button class="buy-btn-coin" onclick="buyRevealCoins(500)">500 🪙</button>
+          <button class="buy-btn-rub" onclick="buyRevealRubles(50)">50 ₽</button>
+        </div>
       </div>
     </div>
   </div>
@@ -157,16 +162,15 @@
     if (targetUserId == myUserId) targetUserId = null;
     const isVisiting = Boolean(targetUserId);
 
-    let userCoins = parseInt(localStorage.getItem('coins')) || 50;
+    let userCoins = parseInt(localStorage.getItem('coins')) || 150;
     
-    // --- ДВУСТОРОННЯЯ РЕФЕРАЛЬНАЯ ЛОГИКА ---
-    // Проверяем, зашел ли пользователь впервые по чьей-то ссылке
+    // 🔥 ДВУСТОРОННИЙ БОНУС ЗА ПРИГЛАШЕНИЕ (+150 МОНЕТ)
     let hasClaimedRef = localStorage.getItem('claimed_ref');
     if (isVisiting && !hasClaimedRef) {
-      userCoins += 50; // Начисляем бонус новичку
+      userCoins += 150; 
       localStorage.setItem('coins', userCoins);
       localStorage.setItem('claimed_ref', 'true');
-      alert(`🎉 Добро пожаловать! Вы перешли по ссылке друга и получили бонус: +50 монет! (Пригласивший вас пользователь также получил +50 монет)`);
+      alert(`🎉 Вы пришли по приглашению друга! Вам начислено +150 монет!`);
     }
 
     document.getElementById('userCoins').innerText = userCoins;
@@ -203,18 +207,18 @@
       const container = document.getElementById('mainCardContent');
       
       if (!isVisiting) {
-        const botUsername = "your_bot_name"; // Заменишь на имя своего бота из BotFather
+        const botUsername = "your_bot_name"; 
         const myLink = `https://t.me/${botUsername}/app?startapp=${myUserId}`;
         
         container.innerHTML = `
           <div class="profile-header">
             <div class="avatar">👑</div>
             <div class="title">Твой личный кабинет</div>
-            <div class="subtitle">Дай другу ссылку — и вы оба получите по +50 монет! 🤝</div>
+            <div class="subtitle">Отправь ссылку другу — вы оба получите по +150 монет! 🤝</div>
           </div>
           <div class="link-box">${myLink}</div>
           <button class="btn" onclick="copyMyLink('${myLink}')">📋 Скопировать ссылку</button>
-          <button class="btn btn-secondary" onclick="inviteAndEarn()">🚀 Поделиться с другом (+50 монет)</button>
+          <button class="btn btn-secondary" onclick="inviteAndEarn()">🚀 Позвать друга (+150 монет)</button>
         `;
       } else {
         container.innerHTML = `
@@ -236,17 +240,17 @@
       alert("Ссылка скопирована!");
     }
 
+    // 🔥 ПРИГЛАШЕНИЕ ДРУГА = +150 МОНЕТ
     function inviteAndEarn() {
       const botUsername = "your_bot_name";
       const myLink = `https://t.me/${botUsername}/app?startapp=${myUserId}`;
-      const text = encodeURIComponent("Задай мне анонимный вопрос в Telegram! Переходи по ссылке и мы оба получим по +50 монет! 🤫👇\n" + myLink);
+      const text = encodeURIComponent("Задай мне анонимный вопрос! Переходи по ссылке и получи +150 монет сразу! 🤫👇\n" + myLink);
       
       window.open(`https://t.me/share/url?url=${encodeURIComponent(myLink)}&text=${text}`);
       
-      // Награда приглашающему
-      updateCoins(50);
+      updateCoins(150);
       tg.HapticFeedback.notificationOccurred('success');
-      alert("🎁 Бонус за отправку приглашения! +50 монет на ваш счет ✨");
+      alert("🎁 Бонус за приглашение! +150 монет на твой счет ✨");
     }
 
     function goToMyProfile() {
@@ -296,7 +300,7 @@
       if (!text) { tg.HapticFeedback.notificationOccurred('error'); return; }
 
       tg.HapticFeedback.notificationOccurred('success');
-      alert(`✅ Вопрос успешно отправлен пользователю #${targetUserId}!`);
+      alert(`✅ Вопрос отправлен пользователю #${targetUserId}!`);
       input.value = "";
     }
 
@@ -352,6 +356,7 @@
       });
     }
 
+    // 🔥 СТОРИС = +100 МОНЕТ
     function shareToStoryAndEarn() {
       if (tg.isVersionAtLeast('7.8')) {
         tg.shareToStory("https://telegra.ph/file/example.png", {
@@ -365,15 +370,22 @@
       alert("🔥 Сторис опубликована! Получено +100 монет ✨");
     }
 
-    function buyReveal(cost) {
+    // 🔥 ПОКУПКА ЗА МОНЕТЫ (500 🪙)
+    function buyRevealCoins(cost) {
       if (userCoins >= cost) {
         updateCoins(-cost);
         tg.HapticFeedback.notificationOccurred('success');
-        alert("🕵️‍♂️ Функция активации: автор последнего вопроса — Алексей (ID: 888111)");
+        alert("🕵️‍♂️ Автор раскртит: это ваш друг Алексей Смирнов (ID: 888111)!");
       } else {
         tg.HapticFeedback.notificationOccurred('error');
-        alert(`❌ Недостаточно монет! Нужно ${cost} монет. Приглашай друзей и пости сторис, чтобы накопить!`);
+        alert(`❌ Не хватает монет! Нужно 500 монет. Опубликуй сторис (+100) или пригласи друзей (+150)!`);
       }
+    }
+
+    // 🔥 ПОКУПКА ЗА РУБЛИ (50 ₽ через Telegram Stars)
+    function buyRevealRubles(price) {
+      tg.HapticFeedback.notificationOccurred('success');
+      alert(`💳 Оплата 50 ₽ (${price} Stars) через Telegram Payments. Открываем окно оплаты...`);
     }
 
     renderMainScreen();
