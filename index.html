@@ -31,11 +31,9 @@
 
     .container { width: 100%; max-width: 420px; display: flex; flex-direction: column; align-items: center; gap: 16px; }
 
-    /* Шапка баланса */
     .top-bar { width: 100%; display: flex; justify-content: space-between; align-items: center; background: var(--card); padding: 10px 16px; border-radius: 16px; border: 1px solid var(--card-border); }
     .balance-badge { display: flex; align-items: center; gap: 6px; font-weight: 700; color: #fbbf24; font-size: 14px; }
 
-    /* Навигация */
     .nav-tabs { display: flex; width: 100%; background: var(--card); backdrop-filter: blur(20px); border-radius: 20px; padding: 4px; border: 1px solid var(--card-border); box-shadow: 0 10px 30px rgba(0,0,0,0.5); overflow-x: auto; }
     .tab { flex: 1; text-align: center; padding: 10px 2px; font-size: 11px; font-weight: 600; color: var(--text-sub); cursor: pointer; border-radius: 14px; transition: all 0.3s; white-space: nowrap; }
     .tab.active { background: var(--accent); color: white; box-shadow: 0 4px 20px rgba(255, 46, 126, 0.4); }
@@ -61,7 +59,6 @@
     .btn-secondary { background: rgba(255,255,255,0.08); color: #fff; border: 1px solid var(--card-border); margin-top: 6px; box-shadow: none; }
     .link-box { background: rgba(0,0,0,0.4); padding: 12px 16px; border-radius: 14px; font-size: 13px; color: #a5b4fc; word-break: break-all; border: 1px dashed rgba(255,255,255,0.1); text-align: center; }
 
-    /* Список друзей */
     .friend-item { display: flex; justify-content: space-between; align-items: center; background: rgba(255,255,255,0.03); padding: 12px 16px; border-radius: 18px; border: 1px solid var(--card-border); gap: 10px; }
     .friend-info { display: flex; align-items: center; gap: 10px; flex: 1; min-width: 0; }
     .friend-avatar { width: 38px; height: 38px; border-radius: 50%; background: linear-gradient(135deg, #3b82f6, #1d4ed8); display: flex; align-items: center; justify-content: center; font-size: 16px; font-weight: bold; flex-shrink: 0; }
@@ -72,7 +69,6 @@
     .friend-action-btn { background: rgba(255,255,255,0.1); color: white; border: none; padding: 7px 10px; border-radius: 10px; font-weight: 600; font-size: 11px; cursor: pointer; }
     .friend-action-btn.primary { background: var(--accent); }
 
-    /* Карточки вопросов */
     .qa-card { background: var(--card); border-radius: 24px; padding: 20px; width: 100%; border: 1px solid var(--card-border); display: flex; flex-direction: column; gap: 10px; }
     .q-badge { font-size: 11px; font-weight: 700; text-transform: uppercase; color: #FF2E7E; display: flex; justify-content: space-between; align-items: center; }
     .q-text { font-size: 14px; color: var(--text-sub); }
@@ -81,7 +77,6 @@
 
     .reveal-inline-btn { background: rgba(251, 191, 36, 0.15); color: #fbbf24; border: 1px solid rgba(251, 191, 36, 0.3); padding: 8px 12px; border-radius: 12px; font-weight: 700; font-size: 12px; cursor: pointer; display: flex; align-items: center; justify-content: center; gap: 6px; margin-top: 6px; }
 
-    /* Модальные окна */
     .modal-overlay { position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.7); backdrop-filter: blur(10px); display: none; align-items: center; justify-content: center; z-index: 1000; padding: 20px; }
     .modal-content { background: #12151c; border: 1px solid rgba(255,255,255,0.1); border-radius: 24px; padding: 24px; width: 100%; max-width: 360px; display: flex; flex-direction: column; gap: 16px; text-align: center; box-shadow: 0 20px 50px rgba(0,0,0,0.6); }
     .modal-title { font-size: 18px; font-weight: 700; }
@@ -98,15 +93,13 @@
 <body>
 
   <div class="container">
-    <!-- Шапка баланса -->
     <div class="top-bar">
       <span style="font-size: 13px; font-weight: 600; color: var(--text-sub);" id="topBarTitle">Твой профиль 🥷</span>
       <div class="balance-badge">
-        <span>✨</span> <span id="userCoins">150</span> монет
+        <span>✨</span> <span id="userCoins">...</span> монет
       </div>
     </div>
 
-    <!-- Навигация -->
     <div class="nav-tabs" id="navTabs">
       <div class="tab active" onclick="switchTab('main')" id="tab-btn-main">Главная</div>
       <div class="tab" onclick="switchTab('inbox')" id="tab-btn-inbox">Сообщения 📥</div>
@@ -114,36 +107,31 @@
       <div class="tab" onclick="switchTab('friends')" id="tab-btn-friends">Друзья 👥</div>
     </div>
 
-    <!-- Вкладка 1: Главная -->
     <div class="view active" id="view-main">
       <div class="card" id="mainCardContent"></div>
       <div id="statusBox" class="status"></div>
     </div>
 
-    <!-- Вкладка 2: Сообщения -->
     <div class="view" id="view-inbox">
       <div id="inboxList" style="width: 100%; display: flex; flex-direction: column; gap: 12px;"></div>
     </div>
 
-    <!-- Вкладка 3: Моя стена -->
     <div class="view" id="view-wall">
       <div id="wallList" style="width: 100%; display: flex; flex-direction: column; gap: 12px;"></div>
     </div>
 
-    <!-- Вкладка 4: Друзья -->
     <div class="view" id="view-friends">
-      <div class="title" style="text-align: left; margin-bottom: 2px;">Приглашай и зарабатывай 👥</div>
-      <div class="subtitle" style="text-align: left; margin-bottom: 6px;">За каждого друга даем +150 монет вам обоим!</div>
+      <div class="title" style="text-align: left; margin-bottom: 2px;">Друзья в боте 👥</div>
+      <div class="subtitle" style="text-align: left; margin-bottom: 6px;">Приглашай друзей — когда они зайдут, вы оба получите по +150 монет!</div>
       <div style="width: 100%; display: flex; flex-direction: column; gap: 10px;" id="friendsListContainer"></div>
-      <button class="btn" style="margin-top: 10px;" onclick="inviteAndEarn()">🚀 Позови друга (+150 монет)</button>
+      <button class="btn" style="margin-top: 10px;" onclick="inviteAndEarn()">🚀 Позвать друга</button>
     </div>
   </div>
 
-  <!-- Модальное окно раскрытия автора -->
   <div class="modal-overlay" id="revealModal">
     <div class="modal-content">
       <div class="modal-title">🕵️‍♂️ Узнать автора?</div>
-      <div class="modal-sub">Эта информация останется видна **только тебе** на твоем устройстве. Выбери способ оплаты:</div>
+      <div class="modal-sub">Эта информация останется видна **только тебе**. Выбери способ оплаты:</div>
       <div class="modal-buy-options">
         <button class="modal-btn-coin" onclick="payWithCoins()">500 🪙</button>
         <button class="modal-btn-rub" onclick="payWithRubles()">50 ₽</button>
@@ -152,13 +140,12 @@
     </div>
   </div>
 
-  <!-- Модальное окно сторис -->
   <div class="modal-overlay" id="storyModal">
     <div class="modal-content">
-      <div class="modal-title">🔥 Успешно опубликовано!</div>
-      <div class="modal-sub">Хочешь поделиться этим ответом в истории Telegram и получить **+100 монет**? В сторис автоматически добавится вопрос, твой ответ и ссылка для новых анонимок!</div>
+      <div class="modal-title">🔥 Опубликовать ответ?</div>
+      <div class="modal-sub">Поделись ответом в истории Telegram и получи **+100 монет** на свой счет после публикации!</div>
       <div style="display: flex; flex-direction: column; gap: 8px; width: 100%;">
-        <button class="btn" onclick="shareToStoryAndEarn()">🚀 Опубликовать в истории (+100 🪙)</button>
+        <button class="btn" onclick="shareToStoryReal()">🚀 Опубликовать в истории</button>
         <button class="modal-close" onclick="closeStoryModal()">Позже</button>
       </div>
     </div>
@@ -168,40 +155,43 @@
     const tg = window.Telegram.WebApp;
     tg.expand();
 
-    const botUsername = "tedsafwgbot"; // 🔥 Имя твоего бота прописано здесь
+    const botUsername = "tedsafwgbot";
+    const BACKEND_URL = "https://YOUR_SERVER_IP_OR_NGROK.ngrok-free.app"; // 🔥 Укажи адрес своего бэкенда
     const myUserId = tg.initDataUnsafe?.user?.id || 12345;
     
     const urlParams = new URLSearchParams(window.location.search);
     let targetUserId = tg.initDataUnsafe?.start_param || urlParams.get('startapp') || urlParams.get('tgWebAppStartParam');
-
     if (targetUserId == myUserId) targetUserId = null;
     const isVisiting = Boolean(targetUserId);
 
-    let userCoins = parseInt(localStorage.getItem('coins')) || 150;
-    
-    let hasClaimedRef = localStorage.getItem('claimed_ref');
-    if (isVisiting && !hasClaimedRef) {
-      userCoins += 150; 
-      localStorage.setItem('coins', userCoins);
-      localStorage.setItem('claimed_ref', 'true');
-      alert(`🎉 Вы пришли по приглашению друга! Вам начислено +150 монет!`);
-    }
+    let userCoins = 150;
+    let telegramFriends = [];
 
-    document.getElementById('userCoins').innerText = userCoins;
+    // Загрузка реальных данных с бэкенда
+    async function syncUserData() {
+      try {
+        const response = await fetch(`${BACKEND_URL}/get_user_data`, {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ initData: tg.initData })
+        });
+        const data = await response.json();
+        if (response.ok) {
+          userCoins = data.coins;
+          telegramFriends = data.friends;
+          document.getElementById('userCoins').innerText = userCoins;
+        }
+      } catch (err) {
+        console.error("Ошибка синхронизации:", err);
+      }
+    }
+    syncUserData();
 
     let inboxData = JSON.parse(localStorage.getItem('inbox')) || [
-      { id: 1, text: "Кто твоя главная краш в офисе?", author: null },
-      { id: 2, text: "Какая твоя самая безумная мечта?", author: null }
+      { id: 1, text: "Кто твоя главная краш в офисе?", author: null }
     ];
-    
     let wallData = JSON.parse(localStorage.getItem('wall')) || [
       { q: "Любимый сериал?", a: "Твое молчание по вечерам 😉", author: null }
-    ];
-
-    let telegramFriends = [
-      { id: 888111, name: "Алексей Смирнов", avatar: "👨‍💻", active: true },
-      { id: 888222, name: "Катя Васильева", avatar: "👩‍🎨", active: true },
-      { id: 888333, name: "Максим Ковалев", avatar: "🚀", active: false }
     ];
 
     let currentRevealId = null;
@@ -216,37 +206,29 @@
       document.getElementById('tab-btn-wall').innerText = "Стена 🏛";
     }
 
-    function updateCoins(amount) {
-      userCoins += amount;
-      localStorage.setItem('coins', userCoins);
-      document.getElementById('userCoins').innerText = userCoins;
-    }
-
     function renderMainScreen() {
       const container = document.getElementById('mainCardContent');
-      
       if (!isVisiting) {
         const myLink = `https://t.me/${botUsername}/app?startapp=${myUserId}`;
-        
         container.innerHTML = `
           <div class="profile-header">
             <div class="avatar">👑</div>
             <div class="title">Твой личный кабинет</div>
-            <div class="subtitle">Отправь ссылку другу — перейдя по ней, он сможет задать тебе анонимный вопрос! Вы оба получите по +150 монет 🤝</div>
+            <div class="subtitle">Отправь ссылку другу — когда он зайдет в бота, вы оба получите по +150 монет! 🤝</div>
           </div>
           <div class="link-box">${myLink}</div>
           <button class="btn" onclick="copyMyLink('${myLink}')">📋 Скопировать ссылку</button>
-          <button class="btn btn-secondary" onclick="inviteAndEarn()">🚀 Позвать друга (+150 монет)</button>
+          <button class="btn btn-secondary" onclick="inviteAndEarn()">🚀 Позвать друга</button>
         `;
       } else {
         container.innerHTML = `
           <div class="profile-header">
             <div class="avatar">🎯</div>
             <div class="title">Стена пользователя #${targetUserId}</div>
-            <div class="subtitle">Ты перешел по ссылке друга! Задай ему анонимный вопрос, автор будет скрыт 🔒</div>
+            <div class="subtitle">Задай анонимный вопрос, автор будет скрыт 🔒</div>
           </div>
           <textarea id="msgInput" placeholder="Напиши всё, что думаешь..." maxlength="300"></textarea>
-          <button class="btn" id="sendBtn" onclick="sendQuestionToUser()">Отправить анонимно 🔥</button>
+          <button class="btn" onclick="sendQuestionToUser()">Отправить анонимно 🔥</button>
           <button class="btn btn-secondary" onclick="goToMyProfile()">🏠 Перейти к моему профилю</button>
         `;
       }
@@ -260,13 +242,8 @@
 
     function inviteAndEarn() {
       const myLink = `https://t.me/${botUsername}/app?startapp=${myUserId}`;
-      const text = encodeURIComponent("Задай мне анонимный вопрос! Переходи по ссылке и получи +150 монет сразу! 🤫👇\n" + myLink);
-      
+      const text = encodeURIComponent("Задай мне анонимный вопрос! Переходи по ссылке в бота и получим монеты оба! 🤫👇\n" + myLink);
       window.open(`https://t.me/share/url?url=${encodeURIComponent(myLink)}&text=${text}`);
-      
-      updateCoins(150);
-      tg.HapticFeedback.notificationOccurred('success');
-      alert("🎁 Бонус за приглашение! +150 монет на твой счет ✨");
     }
 
     function goToMyProfile() {
@@ -276,7 +253,6 @@
     function switchTab(tabName) {
       document.querySelectorAll('.tab').forEach(t => t.classList.remove('active'));
       document.querySelectorAll('.view').forEach(v => v.classList.remove('active'));
-
       document.getElementById(`tab-btn-${tabName}`).classList.add('active');
       document.getElementById(`view-${tabName}`).classList.add('active');
 
@@ -287,8 +263,11 @@
 
     function loadFriends() {
       const container = document.getElementById('friendsListContainer');
+      if (telegramFriends.length === 0) {
+        container.innerHTML = `<div style="text-align:center; color:var(--text-sub); font-size:13px;">Пока никто из друзей не зашел в бота по твоей ссылке. Зови скорее!</div>`;
+        return;
+      }
       container.innerHTML = "";
-      
       telegramFriends.forEach(friend => {
         container.innerHTML += `
           <div class="friend-item">
@@ -296,12 +275,12 @@
               <div class="friend-avatar">${friend.avatar}</div>
               <div>
                 <div class="friend-name">${friend.name}</div>
-                <div class="friend-status">${friend.active ? '🟢 В игре' : '⚪️ Не в игре'}</div>
+                <div class="friend-status">🟢 В игре</div>
               </div>
             </div>
             <div class="friend-actions">
               <button class="friend-action-btn" onclick="visitFriendWall(${friend.id})">Стена</button>
-              <button class="friend-action-btn primary" onclick="writeMessageToFriend(${friend.id})">💬 Написать</button>
+              <button class="friend-action-btn primary" onclick="visitFriendWall(${friend.id})">💬 Задать</button>
             </div>
           </div>
         `;
@@ -313,19 +292,25 @@
       window.location.href = `${window.location.pathname}?startapp=${friendId}`;
     }
 
-    function writeMessageToFriend(friendId) {
-      tg.HapticFeedback.notificationOccurred('success');
-      window.location.href = `${window.location.pathname}?startapp=${friendId}`;
-    }
-
     async function sendQuestionToUser() {
       const input = document.getElementById('msgInput');
       const text = input.value.trim();
-      if (!text) { tg.HapticFeedback.notificationOccurred('error'); return; }
+      if (!text) return;
 
-      tg.HapticFeedback.notificationOccurred('success');
-      alert(`✅ Вопрос отправлен пользователю #${targetUserId}!`);
-      input.value = "";
+      try {
+        const res = await fetch(`${BACKEND_URL}/send_question`, {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ initData: tg.initData, target_id: targetUserId, question: text })
+        });
+        if (res.ok) {
+          tg.HapticFeedback.notificationOccurred('success');
+          alert("✅ Вопрос успешно отправлен!");
+          input.value = "";
+        }
+      } catch (e) {
+        alert("Ошибка отправки");
+      }
     }
 
     function loadInbox() {
@@ -356,10 +341,8 @@
       const aText = ansInput.value.trim();
       if (!aText) { alert("Напиши ответ!"); return; }
 
-      const item = inboxData.find(i => i.id === id);
-      wallData.unshift({ q: qText, a: aText, author: item ? item.author : null });
+      wallData.unshift({ q: qText, a: aText, author: null });
       localStorage.setItem('wall', JSON.stringify(wallData));
-
       inboxData = inboxData.filter(i => i.id !== id);
       localStorage.setItem('inbox', JSON.stringify(inboxData));
 
@@ -388,7 +371,7 @@
             <div class="q-text">«${item.q}»</div>
             <div class="a-text">💬 ${item.a}</div>
             ${authorHtml}
-            ${!isVisiting ? `<button class="btn" style="padding: 10px; font-size: 13px; margin-top: 6px; background: rgba(255,255,255,0.1);" onclick="prepareStoryFromWall('${item.q}', '${item.a}')">🚀 Поделиться в истории (+100 монет)</button>` : ''}
+            ${!isVisiting ? `<button class="btn" style="padding: 10px; font-size: 13px; margin-top: 6px; background: rgba(255,255,255,0.1);" onclick="prepareStoryFromWall('${item.q}', '${item.a}')">🚀 Поделиться в истории</button>` : ''}
           </div>`;
       });
     }
@@ -396,7 +379,7 @@
     function prepareStoryFromWall(q, a) {
       lastPublishedQ = q;
       lastPublishedA = a;
-      shareToStoryAndEarn();
+      shareToStoryReal();
     }
 
     function closeStoryModal() {
@@ -404,7 +387,8 @@
       switchTab('wall');
     }
 
-    function shareToStoryAndEarn() {
+    // 🔥 РЕАЛЬНАЯ ПУБЛИКАЦИЯ В СТОРИС С НАЧИСЛЕНИЕМ НА СЕРВЕРЕ
+    async function shareToStoryReal() {
       closeStoryModal();
       
       if (tg.isVersionAtLeast('7.8')) {
@@ -417,11 +401,26 @@
             name: "Задать анонимный вопрос 🤫"
           }
         });
+
+        // Отправляем запрос на сервер для начисления +100 монет за сторис
+        try {
+          const res = await fetch(`${BACKEND_URL}/reward_story`, {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ initData: tg.initData })
+          });
+          const data = await res.json();
+          if (res.ok) {
+            userCoins = data.coins;
+            document.getElementById('userCoins').innerText = userCoins;
+            alert("🔥 Сторис опубликована! Получено +100 монет ✨");
+          }
+        } catch (err) {
+          console.error("Ошибка начисления за сторис");
+        }
+      } else {
+        alert("Ваша версия Telegram не поддерживает Stories API.");
       }
-      
-      updateCoins(100);
-      tg.HapticFeedback.notificationOccurred('success');
-      alert("🔥 Сторис подготовлена! Получено +100 монет ✨");
       switchTab('wall');
     }
 
@@ -434,14 +433,13 @@
 
     function closeModal() {
       document.getElementById('revealModal').style.display = 'none';
-      currentRevealId = null;
-      currentRevealType = null;
     }
 
     function payWithCoins() {
       const cost = 500;
       if (userCoins >= cost) {
-        updateCoins(-cost);
+        userCoins -= 500;
+        document.getElementById('userCoins').innerText = userCoins;
         revealAuthorForMe("Алексей Смирнов (ID: 888111)");
         closeModal();
       } else {
@@ -460,11 +458,9 @@
       if (currentRevealType === 'inbox') {
         const item = inboxData.find(i => i.id === currentRevealId);
         if (item) item.author = authorName;
-        localStorage.setItem('inbox', JSON.stringify(inboxData));
         loadInbox();
       } else if (currentRevealType === 'wall') {
         if (wallData[currentRevealId]) wallData[currentRevealId].author = authorName;
-        localStorage.setItem('wall', JSON.stringify(wallData));
         loadWall();
       }
       tg.HapticFeedback.notificationOccurred('success');
