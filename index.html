@@ -6,98 +6,60 @@
   <title>Анонимные Вопросы & Стены</title>
   <script src="https://telegram.org/js/telegram-web-app.js"></script>
   <style>
-    :root {
-      --bg: #07080a;
-      --card: rgba(22, 25, 33, 0.85);
-      --card-border: rgba(255, 255, 255, 0.08);
-      --accent: linear-gradient(135deg, #FF2E7E 0%, #7928CA 100%);
-      --text: #ffffff;
-      --text-sub: #94a3b8;
-    }
-
-    * { box-sizing: border-box; margin: 0; padding: 0; font-family: -apple-system, BlinkMacSystemFont, 'SF Pro Display', Roboto, sans-serif; user-select: none; -webkit-tap-highlight-color: transparent; }
-
-    body { 
-      background-color: var(--bg); 
-      background-image: radial-gradient(circle at 10% 20%, rgba(121, 40, 202, 0.15) 0%, transparent 40%), radial-gradient(circle at 90% 80%, rgba(255, 46, 126, 0.15) 0%, transparent 40%);
-      color: var(--text); 
-      display: flex; 
-      flex-direction: column; 
-      align-items: center; 
-      min-height: 100vh; 
-      padding: 16px; 
-      padding-bottom: 90px; 
-    }
-
-    .container { width: 100%; max-width: 420px; display: flex; flex-direction: column; align-items: center; gap: 16px; }
-
-    .top-bar { width: 100%; display: flex; justify-content: space-between; align-items: center; background: var(--card); padding: 10px 16px; border-radius: 16px; border: 1px solid var(--card-border); }
-    .balance-badge { display: flex; align-items: center; gap: 6px; font-weight: 700; color: #fbbf24; font-size: 14px; }
-
-    .nav-tabs { display: flex; width: 100%; background: var(--card); backdrop-filter: blur(20px); border-radius: 20px; padding: 4px; border: 1px solid var(--card-border); box-shadow: 0 10px 30px rgba(0,0,0,0.5); overflow-x: auto; }
-    .tab { flex: 1; text-align: center; padding: 10px 2px; font-size: 11px; font-weight: 600; color: var(--text-sub); cursor: pointer; border-radius: 14px; transition: all 0.3s; white-space: nowrap; }
-    .tab.active { background: var(--accent); color: white; box-shadow: 0 4px 20px rgba(255, 46, 126, 0.4); }
-
-    .view { display: none; width: 100%; flex-direction: column; gap: 16px; animation: fadeIn 0.3s ease; }
-    .view.active { display: flex; }
-
-    @keyframes fadeIn { from { opacity: 0; transform: translateY(6px); } to { opacity: 1; transform: translateY(0); } }
-
-    .card { background: var(--card); backdrop-filter: blur(20px); border-radius: 28px; padding: 24px; width: 100%; border: 1px solid var(--card-border); box-shadow: 0 16px 40px rgba(0,0,0,0.4); display: flex; flex-direction: column; gap: 14px; }
-    
-    .profile-header { display: flex; flex-direction: column; align-items: center; gap: 10px; }
-    .avatar { width: 72px; height: 72px; border-radius: 50%; background: var(--accent); display: flex; align-items: center; justify-content: center; font-size: 32px; box-shadow: 0 0 30px rgba(255, 46, 126, 0.4); border: 2px solid rgba(255,255,255,0.2); }
-    .title { font-size: 18px; font-weight: 700; text-align: center; }
-    .subtitle { font-size: 13px; color: var(--text-sub); text-align: center; line-height: 1.4; }
-
-    textarea { width: 100%; height: 110px; background: rgba(0, 0, 0, 0.3); border: 1px solid var(--card-border); border-radius: 20px; padding: 16px; color: #fff; font-size: 15px; outline: none; resize: none; transition: all 0.3s; }
-    textarea:focus { border-color: #FF2E7E; box-shadow: 0 0 15px rgba(255, 46, 126, 0.2); }
-
-    .btn { width: 100%; padding: 15px; border: none; border-radius: 20px; background: var(--accent); color: white; font-size: 15px; font-weight: 700; cursor: pointer; box-shadow: 0 8px 25px rgba(255, 46, 126, 0.4); transition: transform 0.2s; }
-    .btn:active { transform: scale(0.97); }
-
-    .btn-secondary { background: rgba(255,255,255,0.08); color: #fff; border: 1px solid var(--card-border); margin-top: 6px; box-shadow: none; }
-    .link-box { background: rgba(0,0,0,0.4); padding: 12px 16px; border-radius: 14px; font-size: 13px; color: #a5b4fc; word-break: break-all; border: 1px dashed rgba(255,255,255,0.1); text-align: center; }
-
-    .friend-item { display: flex; justify-content: space-between; align-items: center; background: rgba(255,255,255,0.03); padding: 12px 16px; border-radius: 18px; border: 1px solid var(--card-border); gap: 10px; }
-    .friend-info { display: flex; align-items: center; gap: 10px; flex: 1; min-width: 0; }
-    .friend-avatar { width: 38px; height: 38px; border-radius: 50%; background: linear-gradient(135deg, #3b82f6, #1d4ed8); display: flex; align-items: center; justify-content: center; font-size: 16px; font-weight: bold; flex-shrink: 0; }
-    .friend-name { font-size: 13px; font-weight: 600; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
-    .friend-status { font-size: 11px; color: var(--text-sub); }
-    
-    .friend-actions { display: flex; gap: 6px; flex-shrink: 0; }
-    .friend-action-btn { background: rgba(255,255,255,0.1); color: white; border: none; padding: 7px 10px; border-radius: 10px; font-weight: 600; font-size: 11px; cursor: pointer; }
-    .friend-action-btn.primary { background: var(--accent); }
-
-    .qa-card { background: var(--card); border-radius: 24px; padding: 20px; width: 100%; border: 1px solid var(--card-border); display: flex; flex-direction: column; gap: 10px; }
-    .q-badge { font-size: 11px; font-weight: 700; text-transform: uppercase; color: #FF2E7E; display: flex; justify-content: space-between; align-items: center; }
-    .q-text { font-size: 14px; color: var(--text-sub); }
-    .a-text { font-size: 16px; font-weight: 600; color: #fff; line-height: 1.4; }
-    .author-tag { font-size: 12px; font-weight: 700; color: #4ade80; background: rgba(34,197,94,0.1); padding: 4px 8px; border-radius: 8px; display: inline-block; }
-
-    .reveal-inline-btn { background: rgba(251, 191, 36, 0.15); color: #fbbf24; border: 1px solid rgba(251, 191, 36, 0.3); padding: 8px 12px; border-radius: 12px; font-weight: 700; font-size: 12px; cursor: pointer; display: flex; align-items: center; justify-content: center; gap: 6px; margin-top: 6px; }
-
-    .modal-overlay { position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.7); backdrop-filter: blur(10px); display: none; align-items: center; justify-content: center; z-index: 1000; padding: 20px; }
-    .modal-content { background: #12151c; border: 1px solid rgba(255,255,255,0.1); border-radius: 24px; padding: 24px; width: 100%; max-width: 360px; display: flex; flex-direction: column; gap: 16px; text-align: center; box-shadow: 0 20px 50px rgba(0,0,0,0.6); }
-    .modal-title { font-size: 18px; font-weight: 700; }
-    .modal-sub { font-size: 13px; color: var(--text-sub); line-height: 1.4; }
-    
-    .modal-buy-options { display: flex; gap: 10px; width: 100%; margin-top: 6px; }
-    .modal-btn-coin { flex: 1; background: #fbbf24; color: #000; border: none; padding: 14px; border-radius: 14px; font-weight: 800; font-size: 13px; cursor: pointer; }
-    .modal-btn-rub { flex: 1; background: linear-gradient(135deg, #10b981 0%, #059669 100%); color: #fff; border: none; padding: 14px; border-radius: 14px; font-weight: 800; font-size: 13px; cursor: pointer; }
-    .modal-close { background: rgba(255,255,255,0.08); color: var(--text-sub); border: none; padding: 10px; border-radius: 14px; font-weight: 600; font-size: 13px; cursor: pointer; }
-
-    .status { padding: 12px; border-radius: 16px; text-align: center; font-size: 13px; font-weight: 600; width: 100%; display: none; }
+    :root { --bg:#07080a; --card:rgba(22,25,33,0.85); --card-border:rgba(255,255,255,0.08); --accent:linear-gradient(135deg,#FF2E7E 0%,#7928CA 100%); --text:#fff; --text-sub:#94a3b8; }
+    * { box-sizing:border-box; margin:0; padding:0; font-family:-apple-system,BlinkMacSystemFont,'SF Pro Display',Roboto,sans-serif; user-select:none; -webkit-tap-highlight-color:transparent; }
+    body { background-color:var(--bg); background-image:radial-gradient(circle at 10% 20%,rgba(121,40,202,0.15) 0%,transparent 40%),radial-gradient(circle at 90% 80%,rgba(255,46,126,0.15) 0%,transparent 40%); color:var(--text); display:flex; flex-direction:column; align-items:center; min-height:100vh; padding:16px; padding-bottom:90px; }
+    .container { width:100%; max-width:420px; display:flex; flex-direction:column; align-items:center; gap:16px; }
+    .top-bar { width:100%; display:flex; justify-content:space-between; align-items:center; background:var(--card); padding:10px 16px; border-radius:16px; border:1px solid var(--card-border); }
+    .balance-badge { display:flex; align-items:center; gap:6px; font-weight:700; color:#fbbf24; font-size:14px; }
+    .nav-tabs { display:flex; width:100%; background:var(--card); backdrop-filter:blur(20px); border-radius:20px; padding:4px; border:1px solid var(--card-border); box-shadow:0 10px 30px rgba(0,0,0,0.5); overflow-x:auto; }
+    .tab { flex:1; text-align:center; padding:10px 2px; font-size:11px; font-weight:600; color:var(--text-sub); cursor:pointer; border-radius:14px; transition:all .3s; white-space:nowrap; }
+    .tab.active { background:var(--accent); color:#fff; box-shadow:0 4px 20px rgba(255,46,126,0.4); }
+    .view { display:none; width:100%; flex-direction:column; gap:16px; animation:fadeIn .3s ease; }
+    .view.active { display:flex; }
+    @keyframes fadeIn { from{opacity:0;transform:translateY(6px);} to{opacity:1;transform:translateY(0);} }
+    .card { background:var(--card); backdrop-filter:blur(20px); border-radius:28px; padding:24px; width:100%; border:1px solid var(--card-border); box-shadow:0 16px 40px rgba(0,0,0,0.4); display:flex; flex-direction:column; gap:14px; }
+    .profile-header { display:flex; flex-direction:column; align-items:center; gap:10px; }
+    .avatar { width:72px; height:72px; border-radius:50%; background:var(--accent); display:flex; align-items:center; justify-content:center; font-size:32px; box-shadow:0 0 30px rgba(255,46,126,0.4); border:2px solid rgba(255,255,255,0.2); }
+    .title { font-size:18px; font-weight:700; text-align:center; }
+    .subtitle { font-size:13px; color:var(--text-sub); text-align:center; line-height:1.4; }
+    textarea { width:100%; height:110px; background:rgba(0,0,0,0.3); border:1px solid var(--card-border); border-radius:20px; padding:16px; color:#fff; font-size:15px; outline:none; resize:none; transition:all .3s; user-select:text; }
+    textarea:focus { border-color:#FF2E7E; box-shadow:0 0 15px rgba(255,46,126,0.2); }
+    .btn { width:100%; padding:15px; border:none; border-radius:20px; background:var(--accent); color:#fff; font-size:15px; font-weight:700; cursor:pointer; box-shadow:0 8px 25px rgba(255,46,126,0.4); transition:transform .2s; }
+    .btn:active { transform:scale(0.97); }
+    .btn-secondary { background:rgba(255,255,255,0.08); color:#fff; border:1px solid var(--card-border); margin-top:6px; box-shadow:none; }
+    .link-box { background:rgba(0,0,0,0.4); padding:12px 16px; border-radius:14px; font-size:13px; color:#a5b4fc; word-break:break-all; border:1px dashed rgba(255,255,255,0.1); text-align:center; }
+    .friend-item { display:flex; justify-content:space-between; align-items:center; background:rgba(255,255,255,0.03); padding:12px 16px; border-radius:18px; border:1px solid var(--card-border); gap:10px; }
+    .friend-info { display:flex; align-items:center; gap:10px; flex:1; min-width:0; }
+    .friend-avatar { width:38px; height:38px; border-radius:50%; background:linear-gradient(135deg,#3b82f6,#1d4ed8); display:flex; align-items:center; justify-content:center; font-size:16px; font-weight:bold; flex-shrink:0; }
+    .friend-name { font-size:13px; font-weight:600; white-space:nowrap; overflow:hidden; text-overflow:ellipsis; }
+    .friend-status { font-size:11px; color:var(--text-sub); }
+    .friend-actions { display:flex; gap:6px; flex-shrink:0; }
+    .friend-action-btn { background:rgba(255,255,255,0.1); color:#fff; border:none; padding:7px 10px; border-radius:10px; font-weight:600; font-size:11px; cursor:pointer; }
+    .friend-action-btn.primary { background:var(--accent); }
+    .qa-card { background:var(--card); border-radius:24px; padding:20px; width:100%; border:1px solid var(--card-border); display:flex; flex-direction:column; gap:10px; }
+    .q-badge { font-size:11px; font-weight:700; text-transform:uppercase; color:#FF2E7E; display:flex; justify-content:space-between; align-items:center; }
+    .q-text { font-size:14px; color:var(--text-sub); }
+    .a-text { font-size:16px; font-weight:600; color:#fff; line-height:1.4; }
+    .author-tag { font-size:12px; font-weight:700; color:#4ade80; background:rgba(34,197,94,0.1); padding:4px 8px; border-radius:8px; display:inline-block; }
+    .reveal-inline-btn { background:rgba(251,191,36,0.15); color:#fbbf24; border:1px solid rgba(251,191,36,0.3); padding:8px 12px; border-radius:12px; font-weight:700; font-size:12px; cursor:pointer; display:flex; align-items:center; justify-content:center; gap:6px; margin-top:6px; }
+    .modal-overlay { position:fixed; top:0; left:0; width:100%; height:100%; background:rgba(0,0,0,0.7); backdrop-filter:blur(10px); display:none; align-items:center; justify-content:center; z-index:1000; padding:20px; }
+    .modal-content { background:#12151c; border:1px solid rgba(255,255,255,0.1); border-radius:24px; padding:24px; width:100%; max-width:360px; display:flex; flex-direction:column; gap:16px; text-align:center; box-shadow:0 20px 50px rgba(0,0,0,0.6); }
+    .modal-title { font-size:18px; font-weight:700; }
+    .modal-sub { font-size:13px; color:var(--text-sub); line-height:1.4; }
+    .modal-buy-options { display:flex; gap:10px; width:100%; margin-top:6px; }
+    .modal-btn-coin { flex:1; background:#fbbf24; color:#000; border:none; padding:14px; border-radius:14px; font-weight:800; font-size:13px; cursor:pointer; }
+    .modal-btn-rub { flex:1; background:linear-gradient(135deg,#10b981 0%,#059669 100%); color:#fff; border:none; padding:14px; border-radius:14px; font-weight:800; font-size:13px; cursor:pointer; }
+    .modal-close { background:rgba(255,255,255,0.08); color:var(--text-sub); border:none; padding:10px; border-radius:14px; font-weight:600; font-size:13px; cursor:pointer; }
+    .status { padding:12px; border-radius:16px; text-align:center; font-size:13px; font-weight:600; width:100%; display:none; }
   </style>
 </head>
 <body>
 
   <div class="container">
     <div class="top-bar">
-      <span style="font-size: 13px; font-weight: 600; color: var(--text-sub);" id="topBarTitle">Твой профиль 🥷</span>
-      <div class="balance-badge">
-        <span>✨</span> <span id="userCoins">...</span> монет
-      </div>
+      <span style="font-size:13px; font-weight:600; color:var(--text-sub);" id="topBarTitle">Твой профиль 🥷</span>
+      <div class="balance-badge"><span>✨</span> <span id="userCoins">...</span> монет</div>
     </div>
 
     <div class="nav-tabs" id="navTabs">
@@ -113,25 +75,25 @@
     </div>
 
     <div class="view" id="view-inbox">
-      <div id="inboxList" style="width: 100%; display: flex; flex-direction: column; gap: 12px;"></div>
+      <div id="inboxList" style="width:100%; display:flex; flex-direction:column; gap:12px;"></div>
     </div>
 
     <div class="view" id="view-wall">
-      <div id="wallList" style="width: 100%; display: flex; flex-direction: column; gap: 12px;"></div>
+      <div id="wallList" style="width:100%; display:flex; flex-direction:column; gap:12px;"></div>
     </div>
 
     <div class="view" id="view-friends">
-      <div class="title" style="text-align: left; margin-bottom: 2px;">Друзья в боте 👥</div>
-      <div class="subtitle" style="text-align: left; margin-bottom: 6px;">Приглашай друзей — когда они зайдут в бота по ссылке, вы оба получите по +150 монет!</div>
-      <div style="width: 100%; display: flex; flex-direction: column; gap: 10px;" id="friendsListContainer"></div>
-      <button class="btn" style="margin-top: 10px;" onclick="inviteAndEarn()">🚀 Позвать друга</button>
+      <div class="title" style="text-align:left; margin-bottom:2px;">Друзья в боте 👥</div>
+      <div class="subtitle" style="text-align:left; margin-bottom:6px;">Приглашай друзей — когда они зайдут в бота по ссылке и нажмут «Старт», вы оба получите по +150 монет!</div>
+      <div style="width:100%; display:flex; flex-direction:column; gap:10px;" id="friendsListContainer"></div>
+      <button class="btn" style="margin-top:10px;" onclick="inviteAndEarn()">🚀 Позвать друга</button>
     </div>
   </div>
 
   <div class="modal-overlay" id="revealModal">
     <div class="modal-content">
       <div class="modal-title">🕵️‍♂️ Узнать автора?</div>
-      <div class="modal-sub">Эта информация останется видна **только тебе**. Выбери способ оплаты:</div>
+      <div class="modal-sub">Эта информация останется видна <b>только тебе</b>. Выбери способ оплаты:</div>
       <div class="modal-buy-options">
         <button class="modal-btn-coin" onclick="payWithCoins()">500 🪙</button>
         <button class="modal-btn-rub" onclick="payWithRubles()">50 ₽</button>
@@ -143,8 +105,8 @@
   <div class="modal-overlay" id="storyModal">
     <div class="modal-content">
       <div class="modal-title">🔥 Опубликовать ответ?</div>
-      <div class="modal-sub">Поделись ответом в истории Telegram и получи **+100 монет** на свой счет!</div>
-      <div style="display: flex; flex-direction: column; gap: 8px; width: 100%;">
+      <div class="modal-sub">Поделись ответом в истории Telegram и получи <b>+100 монет</b> на свой счет!</div>
+      <div style="display:flex; flex-direction:column; gap:8px; width:100%;">
         <button class="btn" onclick="shareToStoryReal()">🚀 Опубликовать в истории</button>
         <button class="modal-close" onclick="closeStoryModal()">Позже</button>
       </div>
@@ -156,33 +118,40 @@
     tg.expand();
 
     const botUsername = "tedsafwgbot";
-    const BACKEND_URL = "https://YOUR_SERVER_IP_OR_NGROK.ngrok-free.app"; // 🔥 Укaжи адрес своего бэкенда
+    const BACKEND_URL = "https://YOUR_SERVER_IP_OR_NGROK.ngrok-free.app"; // 🔥 Укажи адрес своего бэкенда (https, без / в конце)
+    const STORY_IMG = "https://piar0zz.github.io/Test-bot/story.jpg";     // картинка лежит рядом с index.html
     const myUserId = tg.initDataUnsafe?.user?.id || 12345;
-    
+    // Ссылка приглашения ведёт в чат бота (/start), чтобы друг реально зарегистрировался
+    const inviteLink = `https://t.me/${botUsername}?start=${myUserId}`;
+
     const urlParams = new URLSearchParams(window.location.search);
     let targetUserId = tg.initDataUnsafe?.start_param || urlParams.get('startapp') || urlParams.get('tgWebAppStartParam');
     if (targetUserId == myUserId) targetUserId = null;
     const isVisiting = Boolean(targetUserId);
 
-    let userCoins = 150;
+    let userCoins = 0;
     let telegramFriends = [];
+
+    async function api(path, body) {
+      const r = await fetch(`${BACKEND_URL}${path}`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json', 'ngrok-skip-browser-warning': '1' },
+        body: JSON.stringify({ initData: tg.initData, ...body })
+      });
+      return { ok: r.ok, data: await r.json().catch(() => ({})) };
+    }
 
     async function syncUserData() {
       try {
-        const response = await fetch(`${BACKEND_URL}/get_user_data`, {
-          method: 'POST',
-          headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify({ initData: tg.initData })
-        });
-        const data = await response.json();
-        if (response.ok) {
-          userCoins = data.coins;
-          telegramFriends = data.friends;
-          document.getElementById('userCoins').innerText = userCoins;
-          if (document.getElementById('tab-btn-friends').classList.contains('active')) {
-            loadFriends();
-          }
+        const { ok, data } = await api('/get_user_data', {});
+        if (!ok) return;
+        if (data.registered === false) {
+          alert("Нажми /start в боте, чтобы зарегистрироваться и получать монеты.");
         }
+        userCoins = data.coins;
+        telegramFriends = data.friends;
+        document.getElementById('userCoins').innerText = userCoins;
+        if (document.getElementById('tab-btn-friends').classList.contains('active')) loadFriends();
       } catch (err) {
         console.error("Ошибка синхронизации:", err);
       }
@@ -211,15 +180,14 @@
     function renderMainScreen() {
       const container = document.getElementById('mainCardContent');
       if (!isVisiting) {
-        const myLink = `https://t.me/${botUsername}/app?startapp=${myUserId}`;
         container.innerHTML = `
           <div class="profile-header">
             <div class="avatar">👑</div>
             <div class="title">Твой личный кабинет</div>
-            <div class="subtitle">Отправь ссылку другу — когда он зайдет в бота, вы оба получите по +150 монет! 🤝</div>
+            <div class="subtitle">Отправь ссылку другу — когда он зайдет в бота и нажмет «Старт», вы оба получите по +150 монет! 🤝</div>
           </div>
-          <div class="link-box">${myLink}</div>
-          <button class="btn" onclick="copyMyLink('${myLink}')">📋 Скопировать ссылку</button>
+          <div class="link-box">${inviteLink}</div>
+          <button class="btn" onclick="copyMyLink('${inviteLink}')">📋 Скопировать ссылку</button>
           <button class="btn btn-secondary" onclick="inviteAndEarn()">🚀 Позвать друга</button>
         `;
       } else {
@@ -242,11 +210,9 @@
       alert("Ссылка скопирована!");
     }
 
-    // 🔥 Чистый текст без дублирования ссылки
     function inviteAndEarn() {
-      const myLink = `https://t.me/${botUsername}/app?startapp=${myUserId}`;
-      const text = encodeURIComponent("Задай мне анонимный вопрос! Переходи по ссылке в бота и получим монеты оба! 🤫👇");
-      window.open(`https://t.me/share/url?url=${encodeURIComponent(myLink)}&text=${text}`);
+      const text = encodeURIComponent("Задай мне анонимный вопрос! Переходи по ссылке, жми «Старт» в боте — и получим монеты оба! 🤫👇");
+      window.open(`https://t.me/share/url?url=${encodeURIComponent(inviteLink)}&text=${text}`);
     }
 
     function goToMyProfile() {
@@ -267,7 +233,7 @@
     function loadFriends() {
       const container = document.getElementById('friendsListContainer');
       if (telegramFriends.length === 0) {
-        container.innerHTML = `<div style="text-align:center; color:var(--text-sub); font-size:13px;">Пока никто из друзей не зашел в бота по твоей ссылке. Как только зайдут — они появятся здесь!</div>`;
+        container.innerHTML = `<div style="text-align:center; color:var(--text-sub); font-size:13px;">Пока никто из друзей не зарегистрировался по твоей ссылке. Как только нажмут «Старт» в боте — они появятся здесь!</div>`;
         return;
       }
       container.innerHTML = "";
@@ -299,17 +265,14 @@
       const input = document.getElementById('msgInput');
       const text = input.value.trim();
       if (!text) return;
-
       try {
-        const res = await fetch(`${BACKEND_URL}/send_question`, {
-          method: 'POST',
-          headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify({ initData: tg.initData, target_id: targetUserId, question: text })
-        });
-        if (res.ok) {
+        const { ok, data } = await api('/send_question', { target_id: targetUserId, question: text });
+        if (ok) {
           tg.HapticFeedback.notificationOccurred('success');
           alert("✅ Вопрос успешно отправлен!");
           input.value = "";
+        } else {
+          alert(data.reason || "Ошибка отправки");
         }
       } catch (e) {
         alert("Ошибка отправки");
@@ -319,19 +282,19 @@
     function loadInbox() {
       const list = document.getElementById('inboxList');
       if (inboxData.length === 0) {
-        list.innerHTML = `<div class="card" style="text-align: center; color: var(--text-sub);">📭 Входящих сообщений пока нет</div>`;
+        list.innerHTML = `<div class="card" style="text-align:center; color:var(--text-sub);">📭 Входящих сообщений пока нет</div>`;
         return;
       }
       list.innerHTML = "";
       inboxData.forEach((item) => {
-        let authorHtml = item.author 
+        let authorHtml = item.author
           ? `<div class="author-tag">👤 Автор: ${item.author}</div>`
           : `<button class="reveal-inline-btn" onclick="openModal(${item.id}, 'inbox')">🕵️‍♂️ Узнать кто написал</button>`;
 
         list.innerHTML += `
           <div class="card">
             <div class="q-badge"><span>Входящий</span></div>
-            <div class="q-text" style="font-size: 15px; color: #fff;">«${item.text}»</div>
+            <div class="q-text" style="font-size:15px; color:#fff;">«${item.text}»</div>
             ${authorHtml}
             <textarea placeholder="Напиши ответ..." id="ans_${item.id}" style="height:80px; margin-top:6px;"></textarea>
             <button class="btn" onclick="publishAnswer(${item.id}, '${item.text}')">Опубликовать на стене 🔥</button>
@@ -359,12 +322,12 @@
     function loadWall() {
       const wall = document.getElementById('wallList');
       if (wallData.length === 0) {
-        wall.innerHTML = `<div class="card" style="text-align: center; color: var(--text-sub);">🏛 На стене пока нет ответов</div>`;
+        wall.innerHTML = `<div class="card" style="text-align:center; color:var(--text-sub);">🏛 На стене пока нет ответов</div>`;
         return;
       }
       wall.innerHTML = "";
       wallData.forEach((item, index) => {
-        let authorHtml = item.author 
+        let authorHtml = item.author
           ? `<div class="author-tag">👤 Автор: ${item.author}</div>`
           : `<button class="reveal-inline-btn" onclick="openModal(${index}, 'wall')">🕵️‍♂️ Узнать кто написал</button>`;
 
@@ -374,7 +337,7 @@
             <div class="q-text">«${item.q}»</div>
             <div class="a-text">💬 ${item.a}</div>
             ${authorHtml}
-            ${!isVisiting ? `<button class="btn" style="padding: 10px; font-size: 13px; margin-top: 6px; background: rgba(255,255,255,0.1);" onclick="prepareStoryFromWall('${item.q}', '${item.a}')">🚀 Поделиться в истории</button>` : ''}
+            ${!isVisiting ? `<button class="btn" style="padding:10px; font-size:13px; margin-top:6px; background:rgba(255,255,255,0.1);" onclick="prepareStoryFromWall('${item.q}', '${item.a}')">🚀 Поделиться в истории</button>` : ''}
           </div>`;
       });
     }
@@ -390,41 +353,47 @@
       switchTab('wall');
     }
 
-    // 🔥 Реальная публикация сторис с рабочей картинкой-подложкой и начислением через сервер
+    function hashKey(s) {
+      let h = 5381;
+      for (const c of s) h = ((h << 5) + h + c.charCodeAt(0)) | 0;
+      return 'a' + (h >>> 0);
+    }
+
+    // Сторис: монеты начисляет только сервер — один раз за ответ, не чаще 3 раз в сутки
     async function shareToStoryReal() {
       closeStoryModal();
-      
-      if (tg.isVersionAtLeast && tg.isVersionAtLeast('7.8')) {
-        const storyText = `❓ Вопрос: "${lastPublishedQ}"\n💬 Ответ: ${lastPublishedA}\n\n👇 Задай мне анонимный вопрос!`;
-        
-        try {
-          // Использование надежной прямой картинки для подложки сторис
-          tg.shareToStory("https://images.unsplash.com/photo-1618005182384-a83a8bd57fbe?q=80&w=1000&auto=format&fit=crop", {
-            text: storyText,
-            widget_link: {
-              url: `https://t.me/${botUsername}/app?startapp=${myUserId}`,
-              name: "Задать анонимный вопрос 🤫"
-            }
-          });
+      if (!(tg.isVersionAtLeast && tg.isVersionAtLeast('7.8'))) {
+        alert("Ваша версия Telegram не поддерживает Stories API (нужна версия 7.8+).");
+        return;
+      }
+      const key = hashKey(lastPublishedQ + '|' + lastPublishedA);
+      try { await api('/story_start', { key }); } catch (e) { console.error(e); }
 
-          const res = await fetch(`${BACKEND_URL}/reward_story`, {
-            method: 'POST',
-            headers: { 'Content-Type': 'application/json' },
-            body: JSON.stringify({ initData: tg.initData })
-          });
-          const data = await res.json();
-          if (res.ok) {
+      // Лимит подписи: 200 символов для обычных пользователей
+      let text = `❓ ${lastPublishedQ}\n💬 ${lastPublishedA}`;
+      if (text.length > 200) text = text.slice(0, 197) + '…';
+      const params = { text };
+      // Ссылка в сторис доступна только Premium-пользователям
+      if (tg.initDataUnsafe?.user?.is_premium) {
+        params.widget_link = { url: inviteLink, name: "Задать вопрос 🤫" };
+      }
+
+      tg.shareToStory(STORY_IMG, params);
+
+      setTimeout(async () => {
+        try {
+          const { ok, data } = await api('/reward_story', { key });
+          if (ok) {
             userCoins = data.coins;
             document.getElementById('userCoins').innerText = userCoins;
-            alert("🔥 Сторис опубликована! Получено +100 монет ✨");
+            alert("+100 монет за сторис ✨");
+          } else if (data.error) {
+            alert(data.error);
           }
         } catch (err) {
           console.error("Ошибка начисления за сторис", err);
         }
-      } else {
-        alert("Ваша версия Telegram не поддерживает Stories API (нужна версия 7.8+).");
-      }
-      switchTab('wall');
+      }, 15000);
     }
 
     function openModal(id, type) {
@@ -441,7 +410,7 @@
     function payWithCoins() {
       const cost = 500;
       if (userCoins >= cost) {
-        userCoins -= 500;
+        userCoins -= cost;
         document.getElementById('userCoins').innerText = userCoins;
         revealAuthorForMe("Алексей Смирнов (ID: 888111)");
         closeModal();
