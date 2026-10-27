@@ -5,7 +5,7 @@ import hashlib, hmac, json, os, sqlite3, threading, time
 import urllib.parse, urllib.request
 from http.server import BaseHTTPRequestHandler, ThreadingHTTPServer
 
-TOKEN = os.getenv("BOT_TOKEN") or "ВСТАВЬ_СЮДА_НОВЫЙ_ТОКЕН_ИЗ_BOTFATHER"
+TOKEN = os.getenv("BOT_TOKEN") or "7974686617:AAHrsTn8qf7PajoEkoKKlMydlxLj1BJ3asA"
 BOT_USERNAME = "tedsafwgbot"
 WEB_APP_URL = "https://piar0zz.github.io/Test-bot/"
 API = f"https://api.telegram.org/bot{TOKEN}/"
