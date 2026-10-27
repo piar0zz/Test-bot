@@ -5,7 +5,8 @@ import hashlib, hmac, json, os, sqlite3, threading, time
 import urllib.parse, urllib.request
 from http.server import BaseHTTPRequestHandler, ThreadingHTTPServer
 
-TOKEN = os.getenv("BOT_TOKEN") or "7974686617:AAHrsTn8qf7PajoEkoKKlMydlxLj1BJ3asA"
+TOKEN = os.getenv("BOT_TOKEN") or "ВСТАВЬ_СЮДА_НОВЫЙ_ТОКЕН_ИЗ_BOTFATHER"
+BOT_USERNAME = "tedsafwgbot"
 WEB_APP_URL = "https://piar0zz.github.io/Test-bot/"
 API = f"https://api.telegram.org/bot{TOKEN}/"
 
@@ -33,7 +34,7 @@ conn.commit()
 
 last_request_time = {}
 
-# ---------- Telegram Bot API через urllib ----------
+# ---------- Telegram Bot API ----------
 def tg(method, **payload):
     data = json.dumps(payload).encode()
     req = urllib.request.Request(API + method, data=data,
@@ -92,20 +93,68 @@ def auth(init_data):
     except Exception:
         return None
 
-# ---------- Обработчики бота (polling) ----------
+# ---------- Нижнее меню бота (постоянная клавиатура) ----------
+def menu_keyboard(web_app_url=WEB_APP_URL):
+    return {"keyboard": [
+        [{"text": "🚀 Открыть приложение", "web_app": {"url": web_app_url}}],
+        [{"text": "📇 Добавить контакты",
+          "request_users": {"request_id": 1, "user_is_bot": False, "max_quantity": 50,
+                            "request_name": True, "request_username": True}}],
+        [{"text": "👥 Мои друзья"}, {"text": "🔗 Моя ссылка"}],
+        [{"text": "📖 Справка"}],
+    ], "resize_keyboard": True, "is_persistent": True}
+
 def on_start(msg):
     user = msg.get("from") or {}
     uid = user.get("id")
     name = " ".join(filter(None, [user.get("first_name"), user.get("last_name")])) or f"ID {uid}"
     parts = (msg.get("text") or "").split()
     referrer_id = int(parts[1]) if len(parts) > 1 and parts[1].isdigit() else None
-    _, ref = register_user(uid, name, referrer_id)
+    is_new, ref = register_user(uid, name, referrer_id)
     if ref:
         send_message(ref, f"🎉 По твоей ссылке зарегистрировался друг ({name})!\n\n🎁 +{REF_BONUS} монет 🪙")
     url = f"{WEB_APP_URL}?startapp={referrer_id}" if referrer_id and referrer_id != uid else WEB_APP_URL
-    send_message(uid, "👋 Добро пожаловать! Твой сервис анонимных вопросов запущен.\n\nЖми кнопку ниже:",
-                 reply_markup={"inline_keyboard": [[{"text": "🚀 Открыть Анонимные Вопросы",
-                                                      "web_app": {"url": url}}]]})
+    text = ("👋 Добро пожаловать! Твой сервис анонимных вопросов запущен.\n\n"
+            "👇 ВНИЗУ всегда есть кнопки меню:\n"
+            "🚀 Открыть приложение — твоя стена вопросов\n"
+            "📇 Добавить контакты — импортировать друзей из Telegram\n"
+            "👥 Мои друзья — кого позвал и кого пригласил\n"
+            "🔗 Моя ссылка — реферальная ссылка (+150 монет обоим)\n\n"
+            "Начни с кнопки «📇 Добавить контакты» — и друзья появятся во вкладке «Друзья» в приложении 🙂")
+    send_message(uid, text, reply_markup=menu_keyboard(url))
+
+def on_friends(msg):
+    uid = (msg.get("from") or {}).get("id")
+    friends = db("SELECT user_id, name FROM users WHERE referred_by = ?", (uid,), "all")
+    contacts = db("SELECT contact_id, name, username FROM contacts WHERE owner_id = ?", (uid,), "all")
+    lines = []
+    if friends:
+        lines.append("🟢 Зарегистрировались по твоей ссылке:")
+        lines += [f"   • {n}" for _, n in friends]
+    if contacts:
+        lines.append("📇 Твои контакты из Telegram:")
+        for cid, n, un in contacts:
+            status = "🟢 в боте" if user_exists(cid) else ("⚪ не в боте, @" + un if un else "⚪ не в боте")
+            lines.append(f"   • {n} — {status}")
+    if not lines:
+        lines.append("Пока пусто. Нажми «📇 Добавить контакты» внизу, чтобы импортировать друзей из Telegram.")
+    lines.append("\n💡 Приглашай друзей кнопкой «🔗 Моя ссылка» — за каждого +150 монет обоим.")
+    send_message(uid, "\n".join(lines), reply_markup=menu_keyboard())
+
+def on_link(msg):
+    uid = (msg.get("from") or {}).get("id")
+    link = f"https://t.me/{BOT_USERNAME}?start={uid}"
+    send_message(uid, f"🔗 Твоя реферальная ссылка:\n{link}\n\nОтправь её другу. Когда он нажмёт START — вы оба получите по +150 монет.",
+                 reply_markup=menu_keyboard())
+
+def on_help(msg):
+    uid = (msg.get("from") or {}).get("id")
+    send_message(uid, ("📖 Как это работает:\n"
+                       "1️⃣ Делись ссылкой — друг жмёт START — оба +150 монет.\n"
+                       "2️⃣ Тебе шлют анонимные вопросы — отвечай в приложении во вкладке «Сообщения».\n"
+                       "3️⃣ Публикуй ответы в истории Telegram — +100 монет за сторис (до 3 в день).\n"
+                       "4️⃣ Монеты тратятся на раскрытие автора вопроса (500 🪙)."),
+                 reply_markup=menu_keyboard())
 
 def on_users_shared(msg):
     owner = (msg.get("from") or {}).get("id")
@@ -117,8 +166,8 @@ def on_users_shared(msg):
         name = " ".join(filter(None, [u.get("first_name"), u.get("last_name")])) or f"ID {cid}"
         db("INSERT OR REPLACE INTO contacts (owner_id, contact_id, name, username) VALUES (?, ?, ?, ?)",
            (owner, cid, name, u.get("username") or ""))
-    send_message(owner, f"✅ Контакты добавлены ({len(users)} шт.)!\n\nВернись в приложение, вкладка «Друзья» — список обновится сам.",
-                 reply_markup={"remove_keyboard": True})
+    send_message(owner, f"✅ Контакты добавлены ({len(users)} шт.)!\n\nОни уже во вкладке «Друзья» в приложении: кого нет в боте — тому можно отправить приглашение.",
+                 reply_markup=menu_keyboard())
 
 def bot_loop():
     offset = None
@@ -136,8 +185,20 @@ def bot_loop():
             try:
                 if "users_shared" in msg:
                     on_users_shared(msg)
-                elif (msg.get("text") or "").startswith("/start"):
-                    on_start(msg)
+                else:
+                    text = (msg.get("text") or "").strip()
+                    if text.startswith("/start"):
+                        on_start(msg)
+                    elif text == "👥 Мои друзья":
+                        on_friends(msg)
+                    elif text == "🔗 Моя ссылка":
+                        on_link(msg)
+                    elif text == "📖 Справка":
+                        on_help(msg)
+                    elif text:
+                        send_message((msg.get("from") or {}).get("id"),
+                                     "Я понимаю только кнопки меню внизу 👇",
+                                     reply_markup=menu_keyboard())
             except Exception as e:
                 print("update error:", e)
 
@@ -178,18 +239,6 @@ def h_get_user_data(data):
                 db("SELECT contact_id, name, username FROM contacts WHERE owner_id = ?", (uid,), "all")]
     return 200, {"registered": True, "coins": row[0], "friends": friends, "contacts": contacts}
 
-def h_request_contacts(data):
-    user = read_user(data)
-    if not user or not user_exists(user["id"]):
-        return 401, {"error": "Unauthorized"}
-    send_message(user["id"], "Нажми кнопку ниже и выбери друзей из контактов Telegram 👇",
-                 reply_markup={"keyboard": [[{"text": "📇 Выбрать контакты",
-                                               "request_users": {"request_id": 1, "user_is_bot": False,
-                                                                 "max_quantity": 50, "request_name": True,
-                                                                 "request_username": True}}]],
-                               "resize_keyboard": True, "one_time_keyboard": True})
-    return 200, {"status": "ok"}
-
 def h_story_start(data):
     user = read_user(data)
     key = str(data.get("key", ""))[:64]
@@ -222,7 +271,6 @@ def h_reward_story(data):
 ROUTES = {
     "/send_question": h_send_question,
     "/get_user_data": h_get_user_data,
-    "/request_contacts": h_request_contacts,
     "/story_start": h_story_start,
     "/reward_story": h_reward_story,
 }
@@ -240,13 +288,7 @@ class Handler(BaseHTTPRequestHandler):
 
     def do_GET(self):
         path = self.path.split("?")[0]
-        if path == "/story.jpg" and os.path.exists("story.jpg"):
-            body = open("story.jpg", "rb").read()
-            self.send_response(200); self._cors()
-            self.send_header("Content-Type", "image/jpeg")
-            self.send_header("Content-Length", str(len(body)))
-            self.end_headers(); self.wfile.write(body)
-        elif path in ("/", "/health"):
+        if path in ("/", "/health"):
             body = json.dumps({"status": "ok"}).encode()
             self.send_response(200); self._cors()
             self.send_header("Content-Type", "application/json")
