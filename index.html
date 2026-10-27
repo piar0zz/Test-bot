@@ -23,8 +23,10 @@
     .avatar { width:72px; height:72px; border-radius:50%; background:var(--accent); display:flex; align-items:center; justify-content:center; font-size:32px; box-shadow:0 0 30px rgba(255,46,126,0.4); border:2px solid rgba(255,255,255,0.2); }
     .title { font-size:18px; font-weight:700; text-align:center; }
     .subtitle { font-size:13px; color:var(--text-sub); text-align:center; line-height:1.4; }
-    textarea { width:100%; height:110px; background:rgba(0,0,0,0.3); border:1px solid var(--card-border); border-radius:20px; padding:16px; color:#fff; font-size:15px; outline:none; resize:none; transition:all .3s; user-select:text; }
-    textarea:focus { border-color:#FF2E7E; box-shadow:0 0 15px rgba(255,46,126,0.2); }
+    textarea, .modal-input { width:100%; background:rgba(0,0,0,0.3); border:1px solid var(--card-border); border-radius:20px; padding:16px; color:#fff; font-size:15px; outline:none; resize:none; transition:all .3s; user-select:text; }
+    textarea { height:110px; }
+    .modal-input { border-radius:14px; padding:12px; font-size:13px; }
+    textarea:focus, .modal-input:focus { border-color:#FF2E7E; box-shadow:0 0 15px rgba(255,46,126,0.2); }
     .btn { width:100%; padding:15px; border:none; border-radius:20px; background:var(--accent); color:#fff; font-size:15px; font-weight:700; cursor:pointer; box-shadow:0 8px 25px rgba(255,46,126,0.4); transition:transform .2s; }
     .btn:active { transform:scale(0.97); }
     .btn-secondary { background:rgba(255,255,255,0.08); color:#fff; border:1px solid var(--card-border); margin-top:6px; box-shadow:none; }
@@ -59,7 +61,10 @@
   <div class="container">
     <div class="top-bar">
       <span style="font-size:13px; font-weight:600; color:var(--text-sub);" id="topBarTitle">Твой профиль 🥷</span>
-      <div class="balance-badge"><span>✨</span> <span id="userCoins">...</span> монет</div>
+      <div style="display:flex; align-items:center; gap:10px;">
+        <span style="font-size:16px; cursor:pointer;" onclick="openBackendSettings()">🔧</span>
+        <div class="balance-badge"><span>✨</span> <span id="userCoins">...</span> монет</div>
+      </div>
     </div>
 
     <div class="nav-tabs" id="navTabs">
@@ -106,7 +111,7 @@
   <div class="modal-overlay" id="storyModal">
     <div class="modal-content">
       <div class="modal-title">🔥 Опубликовать ответ?</div>
-      <div class="modal-sub">Поделись ответом в истории Telegram и получи <b>+100 монет</b> на свой счет!</div>
+      <div class="modal-sub">Поделись ответом в истории Telegram и получи <b>+100 монет</b> на свой счет! Работает без Premium.</div>
       <div style="display:flex; flex-direction:column; gap:8px; width:100%;">
         <button class="btn" onclick="shareToStoryReal()">🚀 Опубликовать в истории</button>
         <button class="modal-close" onclick="closeStoryModal()">Позже</button>
@@ -114,12 +119,27 @@
     </div>
   </div>
 
+  <div class="modal-overlay" id="backendModal">
+    <div class="modal-content">
+      <div class="modal-title">🔧 Адрес сервера</div>
+      <div class="modal-sub">Вставь HTTPS‑адрес бэкенда (туннель cloudflared/ngrok или хостинг). Сохранится в этом телефоне, перезаливать на GitHub не нужно.</div>
+      <input class="modal-input" id="backendInput" placeholder="https://xxxxx.trycloudflare.com">
+      <button class="btn" onclick="saveBackend()">💾 Сохранить и подключить</button>
+      <button class="modal-close" onclick="closeBackendModal()">Закрыть</button>
+    </div>
+  </div>
+
   <script>
     const tg = window.Telegram.WebApp;
     tg.expand();
+    tg.ready();
 
     const botUsername = "tedsafwgbot";
-    const BACKEND_URL = "https://YOUR_SERVER_IP_OR_NGROK.ngrok-free.app";
+    // Сюда можно вшить стабильный адрес позже. Пока пусто — приложение само спросит адрес через 🔧.
+    const DEFAULT_BACKEND = "";
+    let BACKEND_URL = (localStorage.getItem('backend_url') || DEFAULT_BACKEND).replace(/\/+$/, '');
+    let backendPromptShown = false;
+
     const STORY_IMG = "https://piar0zz.github.io/Test-bot/story.jpg";
     const myUserId = tg.initDataUnsafe?.user?.id || 12345;
     const inviteLink = `https://t.me/${botUsername}?start=${myUserId}`;
@@ -133,7 +153,27 @@
     let telegramFriends = [];
     let telegramContacts = [];
 
+    function openBackendSettings() {
+      document.getElementById('backendInput').value = BACKEND_URL || '';
+      document.getElementById('backendModal').style.display = 'flex';
+    }
+    function closeBackendModal() { document.getElementById('backendModal').style.display = 'none'; }
+    function saveBackend() {
+      let v = (document.getElementById('backendInput').value || '').trim().replace(/\/+$/, '');
+      if (!/^https:\/\/.+\..+/.test(v)) { tg.showAlert("Адрес должен выглядеть как https://xxxxx.trycloudflare.com"); return; }
+      localStorage.setItem('backend_url', v);
+      BACKEND_URL = v;
+      backendPromptShown = false;
+      closeBackendModal();
+      syncUserData();
+      tg.showAlert("✅ Сервер подключен: " + v);
+    }
+
     async function api(path, body) {
+      if (!BACKEND_URL) {
+        if (!backendPromptShown) { backendPromptShown = true; openBackendSettings(); }
+        throw new Error('backend not configured');
+      }
       const r = await fetch(`${BACKEND_URL}${path}`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json', 'ngrok-skip-browser-warning': '1' },
@@ -150,21 +190,16 @@
           tg.showAlert("Нажми /start в боте, чтобы зарегистрироваться и получать монеты.");
         }
         userCoins = data.coins;
-        telegramFriends = data.friends;
+        telegramFriends = data.friends || [];
         telegramContacts = data.contacts || [];
         document.getElementById('userCoins').innerText = userCoins;
         if (document.getElementById('tab-btn-friends').classList.contains('active')) loadFriends();
       } catch (err) {
         console.error("Ошибка синхронизации:", err);
+        document.getElementById('userCoins').innerText = "—";
+        if (!backendPromptShown) { backendPromptShown = true; openBackendSettings(); }
       }
     }
-    syncUserData();
-
-    // Проверяем доступность картинки для сторис
-    let storyImgOk = true;
-    fetch(STORY_IMG, { method: 'HEAD', cache: 'no-store' })
-      .then(r => { storyImgOk = r.ok; })
-      .catch(() => { storyImgOk = false; });
 
     let inboxData = JSON.parse(localStorage.getItem('inbox')) || [
       { id: 1, text: "Кто твоя главная краш в офисе?", author: null }
@@ -195,7 +230,7 @@
             <div class="subtitle">Отправь ссылку другу — когда он зайдет в бота и нажмет «Старт», вы оба получите по +150 монет! 🤝</div>
           </div>
           <div class="link-box">${inviteLink}</div>
-          <button class="btn" onclick="copyMyLink('${inviteLink}')">📋 Скопировать ссылку</button>
+          <button class="btn" onclick="copyMyLink()">📋 Скопировать ссылку</button>
           <button class="btn btn-secondary" onclick="inviteAndEarn()">🚀 Позвать друга</button>
         `;
       } else {
@@ -212,33 +247,27 @@
       }
     }
 
-    function copyMyLink(link) {
-      navigator.clipboard.writeText(link);
+    function copyMyLink() {
+      navigator.clipboard.writeText(inviteLink);
       tg.HapticFeedback.notificationOccurred('success');
       tg.showAlert("Ссылка скопирована!");
     }
 
     function inviteAndEarn() {
       const text = encodeURIComponent("Задай мне анонимный вопрос! Переходи по ссылке, жми «Старт» в боте — и получим монеты оба! 🤫👇");
-      window.open(`https://t.me/share/url?url=${encodeURIComponent(inviteLink)}&text=${text}`);
+      tg.openTelegramLink(`https://t.me/share/url?url=${encodeURIComponent(inviteLink)}&text=${text}`);
     }
 
-    function goToMyProfile() {
-      window.location.href = window.location.pathname;
-    }
+    function goToMyProfile() { window.location.href = window.location.pathname; }
 
     function switchTab(tabName) {
       document.querySelectorAll('.tab').forEach(t => t.classList.remove('active'));
       document.querySelectorAll('.view').forEach(v => v.classList.remove('active'));
       document.getElementById(`tab-btn-${tabName}`).classList.add('active');
       document.getElementById(`view-${tabName}`).classList.add('active');
-
       if (tabName === 'inbox') loadInbox();
       if (tabName === 'wall') loadWall();
-      if (tabName === 'friends') loadFriends();
-      
-      // Обновляем данные при переключении на вкладку друзей
-      if (tabName === 'friends') syncUserData();
+      if (tabName === 'friends') { loadFriends(); syncUserData(); }
     }
 
     function esc(s) { return String(s ?? '').replace(/[&<>"']/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c])); }
@@ -250,7 +279,7 @@
             <div class="friend-avatar">👤</div>
             <div>
               <div class="friend-name">${esc(name)}</div>
-              <div class="friend-status">${status}</div>
+              <div class="friend-status">${esc(status)}</div>
             </div>
           </div>
           <div class="friend-actions">${buttons}</div>
@@ -267,11 +296,11 @@
       }
       html += label('Контакты из Telegram');
       if (!telegramContacts.length) {
-        html += `<div style="text-align:center; color:var(--text-sub); font-size:13px; padding:16px;">Контактов пока нет. Нажми «Добавить контакты из Telegram» ниже и выбери, кого хочешь пригласить.</div>`;
+        html += `<div style="text-align:center; color:var(--text-sub); font-size:13px; padding:16px;">Контактов пока нет. Нажми «Добавить контакты из Telegram» ниже: бот пришлёт кнопку выбора, а список обновится сам через пару секунд.</div>`;
       } else {
         html += telegramContacts.map((c, i) => c.in_bot
           ? friendRow(c.name, '🟢 Уже в боте', `<button class="friend-action-btn primary" onclick="visitFriendWall(${Number(c.id)})">💬 Задать</button>`)
-          : friendRow(c.name, c.username ? '@' + esc(c.username) : 'Не в боте', `<button class="friend-action-btn primary" onclick="inviteContact(${i})">📨 Пригласить</button>`)
+          : friendRow(c.name, c.username ? '@' + c.username : 'Не в боте', `<button class="friend-action-btn primary" onclick="inviteContact(${i})">📨 Пригласить</button>`)
         ).join('');
       }
       document.getElementById('friendsListContainer').innerHTML = html;
@@ -281,19 +310,18 @@
       try {
         const { ok } = await api('/request_contacts', {});
         if (ok) {
-          // Показываем инструкцию вместо закрытия приложения
-          tg.showAlert("В чате с ботом появится кнопка «📇 Выбрать контакты». Нажми её, выбери друзей из контактов Telegram, и они появятся здесь через несколько секунд.");
+          tg.showAlert("Свернись в чат с ботом: там появилась кнопка «📇 Выбрать контакты». Выбери друзей — и вернись сюда, список обновится сам.");
         } else {
           tg.showAlert("Сначала нажми /start в боте.");
         }
       } catch (e) {
-        tg.showAlert("Нет связи с сервером");
+        tg.showAlert("Нет связи с сервером. Нажми 🔧 сверху и укажи актуальный HTTPS‑адрес бэкенда (туннель).");
       }
     }
 
     function inviteContact(i) {
       const c = telegramContacts[i];
-      const text = `${c.name}, залетай в бота — задавай мне анонимные вопросы! 🤫👇`;
+      const text = `${c.name}, залетай в бота — задавай мне анонимные вопросы! 🤫`;
       tg.openTelegramLink(`https://t.me/share/url?url=${encodeURIComponent(inviteLink)}&text=${encodeURIComponent(text)}`);
     }
 
@@ -316,7 +344,7 @@
           tg.showAlert(data.reason || "Ошибка отправки");
         }
       } catch (e) {
-        tg.showAlert("Ошибка отправки");
+        tg.showAlert("Ошибка отправки: нет связи с сервером (🔧)");
       }
     }
 
@@ -329,31 +357,32 @@
       list.innerHTML = "";
       inboxData.forEach((item) => {
         let authorHtml = item.author
-          ? `<div class="author-tag">👤 Автор: ${item.author}</div>`
+          ? `<div class="author-tag">👤 Автор: ${esc(item.author)}</div>`
           : `<button class="reveal-inline-btn" onclick="openModal(${item.id}, 'inbox')">🕵️‍♂️ Узнать кто написал</button>`;
-
         list.innerHTML += `
           <div class="card">
             <div class="q-badge"><span>Входящий</span></div>
-            <div class="q-text" style="font-size:15px; color:#fff;">«${item.text}»</div>
+            <div class="q-text" style="font-size:15px; color:#fff;">«${esc(item.text)}»</div>
             ${authorHtml}
             <textarea placeholder="Напиши ответ..." id="ans_${item.id}" style="height:80px; margin-top:6px;"></textarea>
-            <button class="btn" onclick="publishAnswer(${item.id}, '${item.text}')">Опубликовать на стене 🔥</button>
+            <button class="btn" onclick="publishAnswerById(${item.id})">Опубликовать на стене 🔥</button>
           </div>`;
       });
     }
 
-    function publishAnswer(id, qText) {
+    function publishAnswerById(id) {
+      const item = inboxData.find(i => i.id === id);
+      if (!item) return;
       const ansInput = document.getElementById(`ans_${id}`);
-      const aText = ansInput.value.trim();
+      const aText = (ansInput.value || '').trim();
       if (!aText) { tg.showAlert("Напиши ответ!"); return; }
 
-      wallData.unshift({ q: qText, a: aText, author: null });
+      wallData.unshift({ q: item.text, a: aText, author: null });
       localStorage.setItem('wall', JSON.stringify(wallData));
       inboxData = inboxData.filter(i => i.id !== id);
       localStorage.setItem('inbox', JSON.stringify(inboxData));
 
-      lastPublishedQ = qText;
+      lastPublishedQ = item.text;
       lastPublishedA = aText;
 
       tg.HapticFeedback.notificationOccurred('success');
@@ -369,23 +398,24 @@
       wall.innerHTML = "";
       wallData.forEach((item, index) => {
         let authorHtml = item.author
-          ? `<div class="author-tag">👤 Автор: ${item.author}</div>`
+          ? `<div class="author-tag">👤 Автор: ${esc(item.author)}</div>`
           : `<button class="reveal-inline-btn" onclick="openModal(${index}, 'wall')">🕵️‍♂️ Узнать кто написал</button>`;
-
         wall.innerHTML += `
           <div class="qa-card">
             <div class="q-badge"><span>Вопрос</span></div>
-            <div class="q-text">«${item.q}»</div>
-            <div class="a-text">💬 ${item.a}</div>
+            <div class="q-text">«${esc(item.q)}»</div>
+            <div class="a-text">💬 ${esc(item.a)}</div>
             ${authorHtml}
-            ${!isVisiting ? `<button class="btn" style="padding:10px; font-size:13px; margin-top:6px; background:rgba(255,255,255,0.1);" onclick="prepareStoryFromWall('${item.q}', '${item.a}')">🚀 Поделиться в истории</button>` : ''}
+            ${!isVisiting ? `<button class="btn" style="padding:10px; font-size:13px; margin-top:6px; background:rgba(255,255,255,0.1);" onclick="shareWallItem(${index})">🚀 Поделиться в истории</button>` : ''}
           </div>`;
       });
     }
 
-    function prepareStoryFromWall(q, a) {
-      lastPublishedQ = q;
-      lastPublishedA = a;
+    function shareWallItem(index) {
+      const item = wallData[index];
+      if (!item) return;
+      lastPublishedQ = item.q;
+      lastPublishedA = item.a;
       shareToStoryReal();
     }
 
@@ -400,86 +430,70 @@
       return 'a' + (h >>> 0);
     }
 
-    function shareToStoryReal() {
+    async function urlOk(url, timeoutMs = 4000) {
+      try {
+        const ctrl = new AbortController();
+        const t = setTimeout(() => ctrl.abort(), timeoutMs);
+        const r = await fetch(url, { method: 'HEAD', cache: 'no-store', signal: ctrl.signal });
+        clearTimeout(t);
+        return r.ok;
+      } catch (e) { return false; }
+    }
+
+    function scheduleStoryReward(key) {
+      api('/story_start', { key }).catch(() => {});
+      setTimeout(async () => {
+        try {
+          const { ok, data } = await api('/reward_story', { key });
+          if (ok) {
+            userCoins = data.coins;
+            document.getElementById('userCoins').innerText = userCoins;
+            tg.showAlert("+100 монет за сторис ✨");
+          } else if (data.error) {
+            tg.showAlert(data.error);
+          }
+        } catch (err) { console.error("Ошибка начисления за сторис", err); }
+      }, 15000);
+    }
+
+    async function shareToStoryReal() {
       closeStoryModal();
-      
-      if (storyImgOk === false) {
-        tg.showAlert("Не найден файл story.jpg. Загрузи его в репозиторий Test-bot рядом с index.html.");
-        return;
-      }
-      
+
+      const isPremium = !!tg.initDataUnsafe?.user?.is_premium;
+      // Без Premium: подпись до 200 символов и без widget_link — истории публикуются всё равно
+      const LIMIT = isPremium ? 2048 : 200;
       let text = `❓ ${lastPublishedQ}\n💬 ${lastPublishedA}`;
       const tail = `\n\n👉 @${botUsername}`;
-      if (text.length + tail.length > 200) text = text.slice(0, 200 - tail.length - 1) + '…';
+      if (text.length + tail.length > LIMIT) text = text.slice(0, LIMIT - tail.length - 1) + '…';
       text += tail;
 
-      // Проверяем поддержку shareToStory
-      const hasShareToStory = tg.isVersionAtLeast && tg.isVersionAtLeast('7.8') && typeof tg.shareToStory === 'function';
-      
-      if (!hasShareToStory) {
-        // Fallback для старых клиентов или когда API недоступен
-        navigator.clipboard.writeText(text).then(() => {
-          tg.showAlert("📋 Текст скопирован в буфер обмена!\n\nСоздай сторис в Telegram:\n1. Открой Telegram\n2. Нажми на свою аватарку\n3. Выбери «Моя история»\n4. Сделай фото или выбери готовое\n5. Добавь текст и наклейку с @${botUsername}");
-        }).catch(() => {
-          tg.showAlert(`Создай сторис в Telegram:\n\n${text}`);
-        });
-        
-        // Всё равно пытаемся начислить монеты через 15 секунд (предполагаем, что пользователь опубликует)
-        const key = hashKey(lastPublishedQ + '|' + lastPublishedA);
-        api('/story_start', { key }).catch(console.error);
-        setTimeout(async () => {
-          try {
-            const { ok, data } = await api('/reward_story', { key });
-            if (ok) {
-              userCoins = data.coins;
-              document.getElementById('userCoins').innerText = userCoins;
-              tg.showAlert("+100 монет за сторис ✨");
-            }
-          } catch (err) { 
-            console.error("Ошибка начисления за сторис", err); 
-          }
-        }, 15000);
-        
-        return;
+      const key = hashKey(lastPublishedQ + '|' + lastPublishedA);
+
+      // 1) находим реально доступную картинку (GitHub Pages, затем бэкенд)
+      const candidates = [STORY_IMG, BACKEND_URL ? `${BACKEND_URL}/story.jpg` : ''].filter(Boolean);
+      let media = null;
+      for (const c of candidates) { if (await urlOk(c)) { media = c; break; } }
+
+      // 2) пробуем нативный редактор сторис (Bot API 7.8+, доступен без Premium)
+      const canShare = tg.isVersionAtLeast && tg.isVersionAtLeast('7.8') && typeof tg.shareToStory === 'function';
+      if (media && canShare) {
+        const params = { text };
+        if (isPremium) params.widget_link = { url: inviteLink, name: "Задать вопрос 🤫" };
+        try {
+          tg.shareToStory(media, params);
+          scheduleStoryReward(key);
+          return;
+        } catch (e) { console.error("shareToStory error:", e); }
       }
-      
-      const params = { text };
-      
-      // widget_link доступен ТОЛЬКО для Premium пользователей
-      if (tg.initDataUnsafe?.user?.is_premium) {
-        params.widget_link = { url: inviteLink, name: "Задать вопрос 🤫" };
-      }
-      
-      try {
-        tg.shareToStory(STORY_IMG, params);
-        
-        // Награда через сервер
-        const key = hashKey(lastPublishedQ + '|' + lastPublishedA);
-        api('/story_start', { key }).catch(console.error);
-        setTimeout(async () => {
-          try {
-            const { ok, data } = await api('/reward_story', { key });
-            if (ok) {
-              userCoins = data.coins;
-              document.getElementById('userCoins').innerText = userCoins;
-              tg.showAlert("+100 монет за сторис ✨");
-            } else if (data.error) {
-              tg.showAlert(data.error);
-            }
-          } catch (err) { 
-            console.error("Ошибка начисления за сторис", err); 
-          }
-        }, 15000);
-        
-      } catch (e) {
-        console.error("Story error:", e);
-        // Fallback если shareToStory выбросил ошибку
-        navigator.clipboard.writeText(text).then(() => {
-          tg.showAlert("Не удалось открыть редактор автоматически.\n\n📋 Текст скопирован! Создай сторис вручную в Telegram и вставь текст.");
-        }).catch(() => {
-          tg.showAlert(`Создай сторис в Telegram:\n\n${text}`);
-        });
-      }
+
+      // 3) фолбэк: копипаст + инструкция, награда всё равно начислится
+      try { await navigator.clipboard.writeText(text); } catch (e) {}
+      let why = "";
+      if (!media) why = "Не найдена картинка story.jpg на GitHub Pages. ";
+      else if (!canShare) why = "Твой Telegram старый (нужен 7.8+). ";
+      else why = "Редактор сторис не открылся. ";
+      tg.showAlert(why + "Публикуем вручную:\n\n1) Текст уже скопирован в буфер.\n2) В Telegram открой камеру сторис (своя аватарка → «Моя история»).\n3) Выбери любое фото/видео.\n4) Вставь текст из буфера и опубликуй.\n\nМонеты придут через ~15 секунд.");
+      scheduleStoryReward(key);
     }
 
     function openModal(id, type) {
@@ -488,10 +502,7 @@
       document.getElementById('revealModal').style.display = 'flex';
       tg.HapticFeedback.impactOccurred('medium');
     }
-
-    function closeModal() {
-      document.getElementById('revealModal').style.display = 'none';
-    }
+    function closeModal() { document.getElementById('revealModal').style.display = 'none'; }
 
     function payWithCoins() {
       const cost = 500;
@@ -502,16 +513,14 @@
         closeModal();
       } else {
         tg.HapticFeedback.notificationOccurred('error');
-        tg.showAlert(`❌ Не хватает монет! Нужно 500 монет. Опубликуй сторис (+100) или позови друга (+150)!`);
+        tg.showAlert("❌ Не хватает монет! Нужно 500 монет. Опубликуй сторис (+100) или позови друга (+150)!");
       }
     }
-
     function payWithRubles() {
       closeModal();
       tg.HapticFeedback.notificationOccurred('success');
       revealAuthorForMe("Алексей Смирнов (ID: 888111)");
     }
-
     function revealAuthorForMe(authorName) {
       if (currentRevealType === 'inbox') {
         const item = inboxData.find(i => i.id === currentRevealId);
@@ -522,10 +531,18 @@
         loadWall();
       }
       tg.HapticFeedback.notificationOccurred('success');
-      tg.showAlert(`🕵️‍♂️ Успешно! Только ты видишь, что автор этого сообщения — ${authorName}`);
+      tg.showAlert(`🕵️♂️ Успешно! Только ты видишь, что автор этого сообщения — ${authorName}`);
     }
 
+    // авто-обновление контактов/монет, пока открыта вкладка «Друзья» и при возврате в приложение
+    setInterval(() => {
+      if (document.getElementById('tab-btn-friends').classList.contains('active')) syncUserData();
+    }, 7000);
+    document.addEventListener('visibilitychange', () => { if (!document.hidden) syncUserData(); });
+
     renderMainScreen();
+    syncUserData();
+    if (!BACKEND_URL) openBackendSettings();
   </script>
 </body>
 </html>
