@@ -122,7 +122,7 @@
 
     <div class="view" id="view-friends">
       <div class="title" style="text-align: left; margin-bottom: 2px;">Друзья в боте 👥</div>
-      <div class="subtitle" style="text-align: left; margin-bottom: 6px;">Приглашай друзей — когда они зайдут, вы оба получите по +150 монет!</div>
+      <div class="subtitle" style="text-align: left; margin-bottom: 6px;">Приглашай друзей — когда они зайдут в бота по ссылке, вы оба получите по +150 монет!</div>
       <div style="width: 100%; display: flex; flex-direction: column; gap: 10px;" id="friendsListContainer"></div>
       <button class="btn" style="margin-top: 10px;" onclick="inviteAndEarn()">🚀 Позвать друга</button>
     </div>
@@ -143,7 +143,7 @@
   <div class="modal-overlay" id="storyModal">
     <div class="modal-content">
       <div class="modal-title">🔥 Опубликовать ответ?</div>
-      <div class="modal-sub">Поделись ответом в истории Telegram и получи **+100 монет** на свой счет после публикации!</div>
+      <div class="modal-sub">Поделись ответом в истории Telegram и получи **+100 монет** на свой счет!</div>
       <div style="display: flex; flex-direction: column; gap: 8px; width: 100%;">
         <button class="btn" onclick="shareToStoryReal()">🚀 Опубликовать в истории</button>
         <button class="modal-close" onclick="closeStoryModal()">Позже</button>
@@ -156,7 +156,7 @@
     tg.expand();
 
     const botUsername = "tedsafwgbot";
-    const BACKEND_URL = "https://YOUR_SERVER_IP_OR_NGROK.ngrok-free.app"; // 🔥 Укажи адрес своего бэкенда
+    const BACKEND_URL = "https://YOUR_SERVER_IP_OR_NGROK.ngrok-free.app"; // 🔥 Укaжи адрес своего бэкенда
     const myUserId = tg.initDataUnsafe?.user?.id || 12345;
     
     const urlParams = new URLSearchParams(window.location.search);
@@ -167,7 +167,6 @@
     let userCoins = 150;
     let telegramFriends = [];
 
-    // Загрузка реальных данных с бэкенда
     async function syncUserData() {
       try {
         const response = await fetch(`${BACKEND_URL}/get_user_data`, {
@@ -180,6 +179,9 @@
           userCoins = data.coins;
           telegramFriends = data.friends;
           document.getElementById('userCoins').innerText = userCoins;
+          if (document.getElementById('tab-btn-friends').classList.contains('active')) {
+            loadFriends();
+          }
         }
       } catch (err) {
         console.error("Ошибка синхронизации:", err);
@@ -240,9 +242,10 @@
       alert("Ссылка скопирована!");
     }
 
+    // 🔥 Чистый текст без дублирования ссылки
     function inviteAndEarn() {
       const myLink = `https://t.me/${botUsername}/app?startapp=${myUserId}`;
-      const text = encodeURIComponent("Задай мне анонимный вопрос! Переходи по ссылке в бота и получим монеты оба! 🤫👇\n" + myLink);
+      const text = encodeURIComponent("Задай мне анонимный вопрос! Переходи по ссылке в бота и получим монеты оба! 🤫👇");
       window.open(`https://t.me/share/url?url=${encodeURIComponent(myLink)}&text=${text}`);
     }
 
@@ -264,7 +267,7 @@
     function loadFriends() {
       const container = document.getElementById('friendsListContainer');
       if (telegramFriends.length === 0) {
-        container.innerHTML = `<div style="text-align:center; color:var(--text-sub); font-size:13px;">Пока никто из друзей не зашел в бота по твоей ссылке. Зови скорее!</div>`;
+        container.innerHTML = `<div style="text-align:center; color:var(--text-sub); font-size:13px;">Пока никто из друзей не зашел в бота по твоей ссылке. Как только зайдут — они появятся здесь!</div>`;
         return;
       }
       container.innerHTML = "";
@@ -387,23 +390,23 @@
       switchTab('wall');
     }
 
-    // 🔥 РЕАЛЬНАЯ ПУБЛИКАЦИЯ В СТОРИС С НАЧИСЛЕНИЕМ НА СЕРВЕРЕ
+    // 🔥 Реальная публикация сторис с рабочей картинкой-подложкой и начислением через сервер
     async function shareToStoryReal() {
       closeStoryModal();
       
-      if (tg.isVersionAtLeast('7.8')) {
+      if (tg.isVersionAtLeast && tg.isVersionAtLeast('7.8')) {
         const storyText = `❓ Вопрос: "${lastPublishedQ}"\n💬 Ответ: ${lastPublishedA}\n\n👇 Задай мне анонимный вопрос!`;
         
-        tg.shareToStory("https://telegra.ph/file/example.png", {
-          text: storyText,
-          widget_link: {
-            url: `https://t.me/${botUsername}/app?startapp=${myUserId}`,
-            name: "Задать анонимный вопрос 🤫"
-          }
-        });
-
-        // Отправляем запрос на сервер для начисления +100 монет за сторис
         try {
+          // Использование надежной прямой картинки для подложки сторис
+          tg.shareToStory("https://images.unsplash.com/photo-1618005182384-a83a8bd57fbe?q=80&w=1000&auto=format&fit=crop", {
+            text: storyText,
+            widget_link: {
+              url: `https://t.me/${botUsername}/app?startapp=${myUserId}`,
+              name: "Задать анонимный вопрос 🤫"
+            }
+          });
+
           const res = await fetch(`${BACKEND_URL}/reward_story`, {
             method: 'POST',
             headers: { 'Content-Type': 'application/json' },
@@ -416,10 +419,10 @@
             alert("🔥 Сторис опубликована! Получено +100 монет ✨");
           }
         } catch (err) {
-          console.error("Ошибка начисления за сторис");
+          console.error("Ошибка начисления за сторис", err);
         }
       } else {
-        alert("Ваша версия Telegram не поддерживает Stories API.");
+        alert("Ваша версия Telegram не поддерживает Stories API (нужна версия 7.8+).");
       }
       switchTab('wall');
     }
